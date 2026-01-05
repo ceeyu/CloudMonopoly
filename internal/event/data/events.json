@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "description": "AWS Learning Game 事件資料集 - 涵蓋擴廠、跨國合作、資安事件、資料外洩、系統故障、業務成長、法規遵循等真實情境",
+  "total_events": 52,
+  "event_categories": {
+    "opportunity": {"count": 16, "description": "機會事件 - 有利的商業機會，如擴廠、跨國合作、新產品開發"},
+    "fate": {"count": 12, "description": "命運事件 - 隨機正面或負面事件，如市場變化、人才流失、自然災害"},
+    "challenge": {"count": 12, "description": "關卡事件 - 技術挑戰，如效能優化、架構轉型、系統整合"},
+    "security": {"count": 12, "description": "資安事件 - 安全相關事件，如DDoS攻擊、資料外洩、勒索軟體"}
+  },
+  "aws_topics_covered": [
+    "EC2", "Auto Scaling", "ELB", "CloudFront", "Route 53", "S3",
+    "RDS", "Aurora", "DynamoDB", "ElastiCache", "Redshift",
+    "Lambda", "API Gateway", "ECS", "EKS", "SageMaker",
+    "IoT Core", "Kinesis", "SNS", "SQS", "EventBridge",
+    "CloudTrail", "CloudWatch", "GuardDuty", "WAF", "Shield",
+    "IAM", "Cognito", "Secrets Manager", "KMS",
+    "CodePipeline", "CodeBuild", "CodeDeploy",
+    "Glue", "Athena", "QuickSight", "OpenSearch"
+  ],
+  "real_world_scenarios": [
+    "擴廠與基礎設施擴展", "跨國市場拓展", "企業合規認證",
+    "AI/ML 產品開發", "行動應用開發", "電商高峰應對",
+    "IoT 物聯網", "資料分析平台", "微服務轉型", "災難復原",
+    "DDoS 攻擊防護", "資料外洩處理", "勒索軟體應對",
+    "API 金鑰外洩", "SQL 注入防護", "內部威脅偵測",
+    "零日漏洞修補", "供應鏈攻擊", "加密貨幣挖礦攻擊"
+  ],
+  "note": "完整事件資料定義於 internal/event/defaults.go，此 JSON 檔案提供事件資料的結構化參考"
+}

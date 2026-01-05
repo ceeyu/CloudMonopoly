@@ -1,0 +1,235 @@
+:root {
+  --primary-color: #ff9900;
+  --primary-dark: #ec7211;
+  --secondary-color: #232f3e;
+  --background-color: #f5f5f5;
+  --card-background: #ffffff;
+  --text-color: #16191f;
+  --text-secondary: #545b64;
+  --border-color: #d5dbdb;
+  --success-color: #1d8102;
+  --error-color: #d13212;
+  --warning-color: #ff9900;
+  
+  /* 響應式間距 */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  
+  /* 響應式字體大小 */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  
+  /* 響應式容器寬度 */
+  --container-max-width: 1200px;
+  --container-padding: 2rem;
+  
+  /* 響應式斷點 (供參考) */
+  /* mobile: 0-480px */
+  /* tablet: 481-768px */
+  /* desktop: 769px+ */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* 防止 iOS 橫向時字體放大 */
+  -webkit-text-size-adjust: 100%;
+  /* 平滑滾動 */
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  font-size: var(--font-size-base);
+  /* 防止橫向滾動 */
+  overflow-x: hidden;
+  /* 改善觸控滾動 */
+  -webkit-overflow-scrolling: touch;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  /* 防止觸控時的延遲 */
+  touch-action: manipulation;
+}
+
+input, select {
+  font-family: inherit;
+  /* 防止 iOS 縮放 */
+  font-size: 16px;
+}
+
+/* 圖片響應式 */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 響應式工具類 */
+.hide-mobile {
+  display: block;
+}
+
+.show-mobile {
+  display: none;
+}
+
+.hide-tablet {
+  display: block;
+}
+
+.show-tablet {
+  display: none;
+}
+
+.hide-desktop {
+  display: none;
+}
+
+.show-desktop {
+  display: block;
+}
+
+/* 文字截斷工具 */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Flex 工具類 */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 平板斷點 (481px - 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .hide-tablet {
+    display: none;
+  }
+
+  .show-tablet {
+    display: block;
+  }
+}
+
+/* 手機斷點 (max-width: 768px) */
+@media (max-width: 768px) {
+  :root {
+    --spacing-xs: 0.2rem;
+    --spacing-sm: 0.4rem;
+    --spacing-md: 0.75rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.5rem;
+    --font-size-base: 0.9375rem;
+    --font-size-lg: 1rem;
+    --font-size-xl: 1.125rem;
+    --font-size-2xl: 1.25rem;
+    --container-padding: 1rem;
+  }
+
+  .hide-mobile {
+    display: none;
+  }
+
+  .show-mobile {
+    display: block;
+  }
+
+  .hide-desktop {
+    display: block;
+  }
+
+  .show-desktop {
+    display: none;
+  }
+}
+
+/* 小手機斷點 (max-width: 480px) */
+@media (max-width: 480px) {
+  :root {
+    --spacing-md: 0.625rem;
+    --spacing-lg: 0.875rem;
+    --spacing-xl: 1.25rem;
+    --font-size-base: 0.875rem;
+    --font-size-sm: 0.8125rem;
+    --container-padding: 0.75rem;
+  }
+}
+
+/* 觸控友善的按鈕尺寸 */
+@media (pointer: coarse) {
+  button, 
+  .btn,
+  input,
+  select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* 增加可點擊區域間距 */
+  .btn + .btn {
+    margin-left: 0.5rem;
+  }
+}
+
+/* 減少動畫 (無障礙) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 高對比度模式支援 */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: #000000;
+  }
+  
+  .btn {
+    border: 2px solid currentColor;
+  }
+}
+
+/* 橫向模式優化 */
+@media (max-height: 500px) and (orientation: landscape) {
+  .app-header {
+    padding: 0.5rem 1rem;
+  }
+  
+  .app-header h1 {
+    font-size: 1.2rem;
+  }
+  
+  .app-header p {
+    display: none;
+  }
+}

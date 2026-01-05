@@ -1,0 +1,96 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background: linear-gradient(135deg, var(--secondary-color) 0%, #37475a 100%);
+  color: white;
+  padding: var(--spacing-md) var(--spacing-xl);
+  text-align: center;
+  /* 固定頭部 (可選) */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-header h1 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: 0.25rem;
+}
+
+.app-header p {
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+}
+
+.app-main {
+  flex: 1;
+  padding: var(--container-padding);
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.app-footer {
+  background-color: var(--secondary-color);
+  color: white;
+  text-align: center;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+
+/* 平板響應式設計 */
+@media (max-width: 900px) {
+  .app-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+  }
+
+  .app-header h1 {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* 手機響應式設計 */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .app-main {
+    padding: var(--container-padding);
+  }
+  
+  .app-footer {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* 小手機響應式設計 */
+@media (max-width: 480px) {
+  .app-header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .app-header p {
+    font-size: 0.75rem;
+  }
+
+  .app-main {
+    padding: 0.5rem;
+  }
+  
+  .app-footer p {
+    font-size: 0.7rem;
+  }
+}

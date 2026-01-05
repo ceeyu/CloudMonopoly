@@ -1,0 +1,765 @@
+{
+  "version": "1.0",
+  "description": "AWS Learning Game 服務目錄資料集 - 涵蓋 AWS SAA 考試相關的主要服務",
+  "total_services": 50,
+  "services": [
+    {
+      "id": "ec2",
+      "name": "Amazon EC2",
+      "category": "compute",
+      "description": "可調整大小的雲端運算容量，提供虛擬伺服器",
+      "use_cases": ["Web 應用程式", "批次處理", "開發測試環境", "高效能運算"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.0116,
+        "unit": "hour",
+        "free_tier": "每月 750 小時 t2.micro"
+      },
+      "saa_exam_topics": ["EC2 執行個體類型", "Auto Scaling", "彈性 IP", "安全群組", "置放群組", "執行個體儲存"],
+      "best_practices": ["使用 Auto Scaling 自動調整容量", "選擇適當的執行個體類型", "使用 Reserved Instances 節省成本", "使用 Spot Instances 處理可中斷工作負載"]
+    },
+    {
+      "id": "lambda",
+      "name": "AWS Lambda",
+      "category": "compute",
+      "description": "無伺服器運算服務，按需執行程式碼",
+      "use_cases": ["事件驅動處理", "API 後端", "資料處理", "自動化任務"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.0000166667,
+        "unit": "GB-second",
+        "free_tier": "每月 100 萬次請求"
+      },
+      "saa_exam_topics": ["無伺服器架構", "Lambda 觸發器", "並行執行", "冷啟動", "Lambda@Edge", "VPC 整合"],
+      "best_practices": ["最小化函數大小", "使用環境變數", "設定適當的記憶體和逾時", "使用 Provisioned Concurrency 減少冷啟動"]
+    },
+    {
+      "id": "ecs",
+      "name": "Amazon ECS",
+      "category": "compute",
+      "description": "高度可擴展的容器管理服務",
+      "use_cases": ["微服務架構", "批次處理", "CI/CD", "混合部署"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0,
+        "unit": "hour",
+        "free_tier": "ECS 本身免費，僅收取底層資源費用"
+      },
+      "saa_exam_topics": ["容器化", "任務定義", "服務發現", "Fargate vs EC2", "ECR 整合"],
+      "best_practices": ["使用 Fargate 簡化管理", "實作健康檢查", "使用 ECR 儲存映像"]
+    },
+    {
+      "id": "fargate",
+      "name": "AWS Fargate",
+      "category": "compute",
+      "description": "無伺服器容器運算引擎",
+      "use_cases": ["容器化應用", "微服務", "批次處理"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.04048,
+        "unit": "vCPU-hour",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["無伺服器容器", "ECS/EKS 整合", "資源配置"],
+      "best_practices": ["適當設定 CPU 和記憶體", "使用 Spot 容量節省成本"]
+    },
+    {
+      "id": "elastic_beanstalk",
+      "name": "AWS Elastic Beanstalk",
+      "category": "compute",
+      "description": "快速部署和管理應用程式的 PaaS 服務",
+      "use_cases": ["Web 應用程式部署", "快速原型開發", "自動化基礎設施管理"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0,
+        "unit": "free",
+        "free_tier": "服務本身免費，僅收取底層資源費用"
+      },
+      "saa_exam_topics": ["部署策略", "環境類型", "平台版本", "自動擴展"],
+      "best_practices": ["使用藍綠部署減少停機時間", "設定適當的環境變數", "使用 .ebextensions 自訂配置"]
+    }
+,
+    {
+      "id": "auto_scaling",
+      "name": "AWS Auto Scaling",
+      "category": "compute",
+      "description": "自動調整應用程式資源容量",
+      "use_cases": ["動態擴展", "成本優化", "高可用性"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0,
+        "unit": "free",
+        "free_tier": "服務本身免費"
+      },
+      "saa_exam_topics": ["擴展政策", "目標追蹤", "預測擴展", "冷卻期間"],
+      "best_practices": ["使用目標追蹤擴展政策", "設定適當的最小和最大容量", "使用預測擴展處理可預期的負載"]
+    },
+    {
+      "id": "s3",
+      "name": "Amazon S3",
+      "category": "storage",
+      "description": "可擴展的物件儲存服務",
+      "use_cases": ["靜態網站託管", "備份與還原", "資料湖", "內容分發"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.023,
+        "unit": "GB-month",
+        "free_tier": "每月 5 GB 標準儲存"
+      },
+      "saa_exam_topics": ["S3 儲存類別", "生命週期政策", "版本控制", "跨區域複寫", "S3 Transfer Acceleration", "S3 Select", "物件鎖定"],
+      "best_practices": ["使用適當的儲存類別", "啟用版本控制", "設定生命週期政策", "使用 S3 Intelligent-Tiering 自動優化成本"]
+    },
+    {
+      "id": "ebs",
+      "name": "Amazon EBS",
+      "category": "storage",
+      "description": "EC2 執行個體的區塊儲存",
+      "use_cases": ["資料庫儲存", "檔案系統", "開機磁碟區"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.10,
+        "unit": "GB-month",
+        "free_tier": "每月 30 GB SSD"
+      },
+      "saa_exam_topics": ["EBS 磁碟區類型", "快照", "加密", "IOPS", "gp3 vs gp2", "io2 Block Express"],
+      "best_practices": ["選擇適當的磁碟區類型", "定期建立快照", "啟用加密", "使用 gp3 獲得更好的性價比"]
+    },
+    {
+      "id": "efs",
+      "name": "Amazon EFS",
+      "category": "storage",
+      "description": "彈性檔案系統，支援 NFS",
+      "use_cases": ["共享檔案儲存", "內容管理", "Web 服務", "容器儲存"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.30,
+        "unit": "GB-month",
+        "free_tier": "每月 5 GB"
+      },
+      "saa_exam_topics": ["NFS 協定", "效能模式", "儲存類別", "跨 AZ 存取", "EFS Infrequent Access"],
+      "best_practices": ["使用 Infrequent Access 儲存類別節省成本", "設定適當的效能模式", "使用生命週期管理"]
+    },
+    {
+      "id": "glacier",
+      "name": "Amazon S3 Glacier",
+      "category": "storage",
+      "description": "低成本長期封存儲存",
+      "use_cases": ["資料封存", "合規性保留", "備份", "數位保存"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.004,
+        "unit": "GB-month",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["擷取選項", "Vault Lock", "生命週期轉換", "Glacier Deep Archive", "擷取時間"],
+      "best_practices": ["用於不常存取的資料", "了解擷取時間和成本", "使用 Vault Lock 確保合規性"]
+    },
+    {
+      "id": "fsx",
+      "name": "Amazon FSx",
+      "category": "storage",
+      "description": "全受管檔案系統服務",
+      "use_cases": ["Windows 檔案伺服器", "高效能運算", "機器學習", "媒體處理"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.13,
+        "unit": "GB-month",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["FSx for Windows", "FSx for Lustre", "FSx for NetApp ONTAP", "效能特性"],
+      "best_practices": ["選擇適當的檔案系統類型", "使用 FSx for Lustre 處理 HPC 工作負載"]
+    }
+,
+    {
+      "id": "rds",
+      "name": "Amazon RDS",
+      "category": "database",
+      "description": "受管關聯式資料庫服務",
+      "use_cases": ["Web 應用程式", "企業應用", "電子商務", "ERP 系統"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.017,
+        "unit": "hour",
+        "free_tier": "每月 750 小時 db.t2.micro"
+      },
+      "saa_exam_topics": ["Multi-AZ 部署", "讀取複本", "自動備份", "資料庫引擎", "RDS Proxy", "效能洞察"],
+      "best_practices": ["使用 Multi-AZ 提高可用性", "設定自動備份", "使用讀取複本分散負載", "使用 RDS Proxy 管理連線"]
+    },
+    {
+      "id": "dynamodb",
+      "name": "Amazon DynamoDB",
+      "category": "database",
+      "description": "全受管 NoSQL 資料庫",
+      "use_cases": ["遊戲", "IoT", "行動應用", "即時分析", "Session 管理"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 1.25,
+        "unit": "million WCU",
+        "free_tier": "每月 25 GB 儲存"
+      },
+      "saa_exam_topics": ["分區鍵設計", "全域資料表", "DAX 快取", "串流", "容量模式", "TTL"],
+      "best_practices": ["設計良好的分區鍵", "使用 DAX 加速讀取", "啟用 Point-in-time Recovery", "使用 On-Demand 容量處理不可預測的工作負載"]
+    },
+    {
+      "id": "aurora",
+      "name": "Amazon Aurora",
+      "category": "database",
+      "description": "高效能受管關聯式資料庫",
+      "use_cases": ["企業應用", "SaaS 應用", "高流量網站", "遊戲後端"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.10,
+        "unit": "hour",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["Aurora 複本", "全域資料庫", "Serverless", "故障轉移", "Aurora Multi-Master", "回溯"],
+      "best_practices": ["使用 Aurora Serverless 處理變動負載", "設定跨區域複本", "使用回溯功能快速恢復"]
+    },
+    {
+      "id": "elasticache",
+      "name": "Amazon ElastiCache",
+      "category": "database",
+      "description": "受管記憶體快取服務",
+      "use_cases": ["Session 管理", "資料庫快取", "即時分析", "排行榜"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.017,
+        "unit": "hour",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["Redis vs Memcached", "叢集模式", "複寫", "快取策略", "Global Datastore"],
+      "best_practices": ["選擇適當的引擎", "設定適當的節點類型", "使用 Redis 叢集模式提高可用性"]
+    },
+    {
+      "id": "documentdb",
+      "name": "Amazon DocumentDB",
+      "category": "database",
+      "description": "MongoDB 相容的文件資料庫",
+      "use_cases": ["內容管理", "目錄", "使用者設定檔", "行動應用"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.10,
+        "unit": "hour",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["MongoDB 相容性", "叢集架構", "複本", "備份"],
+      "best_practices": ["使用適當的執行個體類型", "設定自動備份", "使用讀取複本分散負載"]
+    },
+    {
+      "id": "neptune",
+      "name": "Amazon Neptune",
+      "category": "database",
+      "description": "全受管圖形資料庫服務",
+      "use_cases": ["社交網路", "推薦引擎", "詐欺偵測", "知識圖譜"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.10,
+        "unit": "hour",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["圖形資料庫", "Gremlin", "SPARQL", "高可用性"],
+      "best_practices": ["選擇適當的查詢語言", "使用讀取複本提高效能"]
+    }
+,
+    {
+      "id": "vpc",
+      "name": "Amazon VPC",
+      "category": "networking",
+      "description": "虛擬私有雲網路",
+      "use_cases": ["網路隔離", "混合雲連接", "安全架構", "多層應用"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0,
+        "unit": "hour",
+        "free_tier": "VPC 本身免費"
+      },
+      "saa_exam_topics": ["子網路", "路由表", "NAT Gateway", "VPC Peering", "VPC Endpoints", "Transit Gateway", "安全群組 vs NACL"],
+      "best_practices": ["使用多個 AZ", "設定適當的 CIDR", "使用安全群組和 NACL", "使用 VPC Endpoints 存取 AWS 服務"]
+    },
+    {
+      "id": "cloudfront",
+      "name": "Amazon CloudFront",
+      "category": "networking",
+      "description": "全球內容傳遞網路 (CDN)",
+      "use_cases": ["靜態內容加速", "動態內容加速", "串流媒體", "API 加速"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.085,
+        "unit": "GB",
+        "free_tier": "每月 1 TB 資料傳輸"
+      },
+      "saa_exam_topics": ["邊緣位置", "Origin", "快取行為", "SSL/TLS", "Origin Access Identity", "Lambda@Edge", "Field-Level Encryption"],
+      "best_practices": ["設定適當的 TTL", "使用 Origin Shield", "啟用壓縮", "使用 OAI 保護 S3 Origin"]
+    },
+    {
+      "id": "route53",
+      "name": "Amazon Route 53",
+      "category": "networking",
+      "description": "可擴展的 DNS 服務",
+      "use_cases": ["網域註冊", "DNS 路由", "健康檢查", "流量管理"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.50,
+        "unit": "hosted zone/month",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["路由政策", "健康檢查", "Alias 記錄", "故障轉移", "地理位置路由", "延遲路由", "加權路由"],
+      "best_practices": ["使用 Alias 記錄指向 AWS 資源", "設定健康檢查", "使用適當的路由政策"]
+    },
+    {
+      "id": "elb",
+      "name": "Elastic Load Balancing",
+      "category": "networking",
+      "description": "自動分散流量的負載平衡器",
+      "use_cases": ["高可用性", "自動擴展", "SSL 終止", "微服務路由"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.0225,
+        "unit": "hour",
+        "free_tier": "每月 750 小時"
+      },
+      "saa_exam_topics": ["ALB vs NLB vs CLB vs GWLB", "目標群組", "健康檢查", "跨區域負載平衡", "黏性 Session", "SSL 終止"],
+      "best_practices": ["選擇適當的負載平衡器類型", "設定健康檢查", "使用 SSL/TLS", "啟用存取日誌"]
+    },
+    {
+      "id": "apigateway",
+      "name": "Amazon API Gateway",
+      "category": "networking",
+      "description": "建立、發布和管理 API",
+      "use_cases": ["REST API", "WebSocket API", "微服務閘道", "無伺服器後端"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 3.50,
+        "unit": "million requests",
+        "free_tier": "每月 100 萬次 REST API 呼叫"
+      },
+      "saa_exam_topics": ["REST vs HTTP API", "授權", "節流", "快取", "階段", "使用計畫"],
+      "best_practices": ["使用 HTTP API 節省成本", "設定適當的節流限制", "使用 Lambda 授權器"]
+    },
+    {
+      "id": "direct_connect",
+      "name": "AWS Direct Connect",
+      "category": "networking",
+      "description": "專用網路連線到 AWS",
+      "use_cases": ["混合雲", "資料中心連接", "高頻寬應用", "低延遲需求"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.03,
+        "unit": "port hour",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["專用連線", "託管連線", "虛擬介面", "LAG", "Direct Connect Gateway"],
+      "best_practices": ["使用多個連線提高可用性", "搭配 VPN 作為備援", "使用 Direct Connect Gateway 連接多個 VPC"]
+    },
+    {
+      "id": "global_accelerator",
+      "name": "AWS Global Accelerator",
+      "category": "networking",
+      "description": "改善全球應用程式可用性和效能",
+      "use_cases": ["全球應用", "遊戲", "IoT", "VoIP"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.025,
+        "unit": "hour",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["Anycast IP", "端點群組", "健康檢查", "流量撥號"],
+      "best_practices": ["用於需要靜態 IP 的應用", "搭配 ALB 使用", "設定適當的健康檢查"]
+    }
+,
+    {
+      "id": "iam",
+      "name": "AWS IAM",
+      "category": "security",
+      "description": "身分和存取管理",
+      "use_cases": ["使用者管理", "權限控制", "聯合身分", "跨帳戶存取"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0,
+        "unit": "free",
+        "free_tier": "完全免費"
+      },
+      "saa_exam_topics": ["IAM 政策", "角色", "MFA", "最小權限原則", "IAM Identity Center", "STS", "權限邊界"],
+      "best_practices": ["使用角色而非長期憑證", "啟用 MFA", "遵循最小權限原則", "定期輪換憑證"]
+    },
+    {
+      "id": "waf",
+      "name": "AWS WAF",
+      "category": "security",
+      "description": "Web 應用程式防火牆",
+      "use_cases": ["SQL 注入防護", "XSS 防護", "DDoS 緩解", "Bot 管理"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 5.00,
+        "unit": "web ACL/month",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["規則群組", "受管規則", "速率限制", "地理封鎖", "IP 集合"],
+      "best_practices": ["使用受管規則", "設定速率限制", "監控和調整規則", "搭配 CloudFront 或 ALB 使用"]
+    },
+    {
+      "id": "shield",
+      "name": "AWS Shield",
+      "category": "security",
+      "description": "DDoS 防護服務",
+      "use_cases": ["DDoS 防護", "應用程式保護", "基礎設施保護"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0,
+        "unit": "free",
+        "free_tier": "Shield Standard 免費"
+      },
+      "saa_exam_topics": ["Shield Standard vs Advanced", "DDoS 緩解", "成本保護", "回應團隊"],
+      "best_practices": ["所有 AWS 資源自動受 Shield Standard 保護", "高價值應用使用 Shield Advanced"]
+    },
+    {
+      "id": "kms",
+      "name": "AWS KMS",
+      "category": "security",
+      "description": "金鑰管理服務",
+      "use_cases": ["資料加密", "金鑰輪換", "合規性", "數位簽章"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 1.00,
+        "unit": "key/month",
+        "free_tier": "AWS 受管金鑰免費"
+      },
+      "saa_exam_topics": ["CMK", "金鑰政策", "加密類型", "金鑰輪換", "信封加密", "多區域金鑰"],
+      "best_practices": ["使用 CMK 進行細粒度控制", "啟用自動金鑰輪換", "使用信封加密處理大型資料"]
+    },
+    {
+      "id": "guardduty",
+      "name": "Amazon GuardDuty",
+      "category": "security",
+      "description": "智慧威脅偵測服務",
+      "use_cases": ["威脅偵測", "異常行為分析", "合規性", "帳戶保護"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 4.00,
+        "unit": "million events",
+        "free_tier": "30 天免費試用"
+      },
+      "saa_exam_topics": ["威脅偵測", "發現類型", "整合", "多帳戶管理"],
+      "best_practices": ["在所有區域啟用", "整合 Security Hub", "設定自動回應"]
+    },
+    {
+      "id": "securityhub",
+      "name": "AWS Security Hub",
+      "category": "security",
+      "description": "安全狀態管理服務",
+      "use_cases": ["安全合規", "集中管理", "自動化修復", "安全評分"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.0010,
+        "unit": "check",
+        "free_tier": "30 天免費試用"
+      },
+      "saa_exam_topics": ["安全標準", "發現彙總", "自動化", "CIS 基準"],
+      "best_practices": ["啟用自動化修復", "整合其他安全服務", "使用安全標準評估合規性"]
+    },
+    {
+      "id": "secrets_manager",
+      "name": "AWS Secrets Manager",
+      "category": "security",
+      "description": "安全儲存和管理機密資訊",
+      "use_cases": ["資料庫憑證", "API 金鑰", "OAuth 權杖", "SSH 金鑰"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.40,
+        "unit": "secret/month",
+        "free_tier": "30 天免費試用"
+      },
+      "saa_exam_topics": ["自動輪換", "跨區域複寫", "Lambda 整合", "RDS 整合"],
+      "best_practices": ["啟用自動輪換", "使用 IAM 政策控制存取", "避免在程式碼中硬編碼機密"]
+    },
+    {
+      "id": "acm",
+      "name": "AWS Certificate Manager",
+      "category": "security",
+      "description": "SSL/TLS 憑證管理",
+      "use_cases": ["HTTPS 網站", "API 安全", "負載平衡器 SSL"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0,
+        "unit": "free",
+        "free_tier": "公有憑證免費"
+      },
+      "saa_exam_topics": ["公有憑證", "私有憑證", "自動續約", "憑證驗證"],
+      "best_practices": ["使用 ACM 管理憑證", "啟用自動續約", "使用 DNS 驗證"]
+    }
+,
+    {
+      "id": "athena",
+      "name": "Amazon Athena",
+      "category": "analytics",
+      "description": "無伺服器互動式查詢服務",
+      "use_cases": ["日誌分析", "資料湖查詢", "臨時分析", "商業智慧"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 5.00,
+        "unit": "TB scanned",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["S3 查詢", "Glue 整合", "分區", "Parquet 格式", "聯合查詢"],
+      "best_practices": ["使用分區減少掃描量", "使用 Parquet 格式", "壓縮資料減少成本"]
+    },
+    {
+      "id": "kinesis",
+      "name": "Amazon Kinesis",
+      "category": "analytics",
+      "description": "即時資料串流服務",
+      "use_cases": ["即時分析", "日誌處理", "IoT 資料", "點擊流分析"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.015,
+        "unit": "shard hour",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["Data Streams", "Firehose", "Analytics", "分片", "增強型扇出"],
+      "best_practices": ["適當設定分片數量", "使用 Firehose 簡化資料載入", "使用增強型扇出處理多個消費者"]
+    },
+    {
+      "id": "redshift",
+      "name": "Amazon Redshift",
+      "category": "analytics",
+      "description": "雲端資料倉儲",
+      "use_cases": ["商業智慧", "資料分析", "報表", "ETL"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.25,
+        "unit": "hour",
+        "free_tier": "2 個月免費試用"
+      },
+      "saa_exam_topics": ["叢集架構", "Spectrum", "並行擴展", "快照", "Serverless", "資料共享"],
+      "best_practices": ["使用 Spectrum 查詢 S3 資料", "設定適當的節點類型", "使用 Redshift Serverless 處理變動工作負載"]
+    },
+    {
+      "id": "emr",
+      "name": "Amazon EMR",
+      "category": "analytics",
+      "description": "受管大數據平台",
+      "use_cases": ["大數據處理", "機器學習", "ETL", "日誌分析"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.015,
+        "unit": "hour",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["Hadoop", "Spark", "叢集類型", "EMRFS", "EMR on EKS"],
+      "best_practices": ["使用 Spot 執行個體節省成本", "使用 EMRFS 存取 S3", "選擇適當的叢集類型"]
+    },
+    {
+      "id": "glue",
+      "name": "AWS Glue",
+      "category": "analytics",
+      "description": "無伺服器 ETL 服務",
+      "use_cases": ["資料整合", "ETL", "資料目錄", "資料準備"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.44,
+        "unit": "DPU-hour",
+        "free_tier": "每月 100 萬個物件"
+      },
+      "saa_exam_topics": ["資料目錄", "爬蟲程式", "ETL 作業", "Glue Studio", "資料品質"],
+      "best_practices": ["使用爬蟲程式自動發現結構描述", "使用 Glue Studio 視覺化設計 ETL", "使用書籤追蹤處理進度"]
+    }
+,
+    {
+      "id": "cloudwatch",
+      "name": "Amazon CloudWatch",
+      "category": "management",
+      "description": "監控和可觀測性服務",
+      "use_cases": ["指標監控", "日誌管理", "警報", "儀表板"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.30,
+        "unit": "metric/month",
+        "free_tier": "10 個自訂指標"
+      },
+      "saa_exam_topics": ["指標", "日誌", "警報", "儀表板", "Logs Insights", "Container Insights", "Application Insights"],
+      "best_practices": ["設定適當的警報閾值", "使用日誌洞察分析日誌", "使用 Container Insights 監控容器"]
+    },
+    {
+      "id": "cloudtrail",
+      "name": "AWS CloudTrail",
+      "category": "management",
+      "description": "API 活動追蹤服務",
+      "use_cases": ["稽核", "合規性", "安全分析", "故障排除"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 2.00,
+        "unit": "100,000 events",
+        "free_tier": "管理事件免費"
+      },
+      "saa_exam_topics": ["追蹤", "事件類型", "S3 整合", "組織追蹤", "CloudTrail Lake", "洞察事件"],
+      "best_practices": ["在所有區域啟用", "將日誌傳送到 S3", "啟用日誌檔案驗證"]
+    },
+    {
+      "id": "config",
+      "name": "AWS Config",
+      "category": "management",
+      "description": "資源組態追蹤服務",
+      "use_cases": ["合規性稽核", "組態管理", "變更追蹤", "安全分析"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.003,
+        "unit": "configuration item",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["規則", "合規性", "修復動作", "聚合器", "組態快照"],
+      "best_practices": ["使用受管規則", "設定自動修復", "使用聚合器集中管理多帳戶"]
+    },
+    {
+      "id": "systems_manager",
+      "name": "AWS Systems Manager",
+      "category": "management",
+      "description": "統一管理 AWS 資源",
+      "use_cases": ["修補程式管理", "組態管理", "自動化", "參數儲存"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0,
+        "unit": "free",
+        "free_tier": "大部分功能免費"
+      },
+      "saa_exam_topics": ["Parameter Store", "Session Manager", "Patch Manager", "Run Command", "Automation"],
+      "best_practices": ["使用 Parameter Store 儲存組態", "使用 Session Manager 取代 SSH", "使用 Patch Manager 自動化修補"]
+    },
+    {
+      "id": "cloudformation",
+      "name": "AWS CloudFormation",
+      "category": "management",
+      "description": "基礎設施即程式碼服務",
+      "use_cases": ["基礎設施自動化", "環境複製", "災難復原", "合規性"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0,
+        "unit": "free",
+        "free_tier": "服務本身免費"
+      },
+      "saa_exam_topics": ["堆疊", "範本", "變更集", "巢狀堆疊", "StackSets", "漂移偵測"],
+      "best_practices": ["使用變更集預覽變更", "使用巢狀堆疊組織複雜架構", "使用 StackSets 管理多帳戶"]
+    }
+,
+    {
+      "id": "sqs",
+      "name": "Amazon SQS",
+      "category": "integration",
+      "description": "全受管訊息佇列服務",
+      "use_cases": ["應用程式解耦", "非同步處理", "工作佇列", "緩衝"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.40,
+        "unit": "million requests",
+        "free_tier": "每月 100 萬次請求"
+      },
+      "saa_exam_topics": ["標準佇列 vs FIFO", "可見性逾時", "死信佇列", "長輪詢", "訊息保留"],
+      "best_practices": ["使用長輪詢減少成本", "設定死信佇列處理失敗訊息", "使用 FIFO 佇列確保順序"]
+    },
+    {
+      "id": "sns",
+      "name": "Amazon SNS",
+      "category": "integration",
+      "description": "全受管發布/訂閱訊息服務",
+      "use_cases": ["應用程式通知", "系統警報", "扇出模式", "行動推播"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.50,
+        "unit": "million requests",
+        "free_tier": "每月 100 萬次發布"
+      },
+      "saa_exam_topics": ["主題", "訂閱", "訊息篩選", "扇出模式", "FIFO 主題"],
+      "best_practices": ["使用訊息篩選減少不必要的傳遞", "搭配 SQS 實現扇出模式", "使用 FIFO 主題確保順序"]
+    },
+    {
+      "id": "eventbridge",
+      "name": "Amazon EventBridge",
+      "category": "integration",
+      "description": "無伺服器事件匯流排",
+      "use_cases": ["事件驅動架構", "SaaS 整合", "排程任務", "應用程式整合"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 1.00,
+        "unit": "million events",
+        "free_tier": "AWS 服務事件免費"
+      },
+      "saa_exam_topics": ["事件匯流排", "規則", "目標", "結構描述登錄", "排程器"],
+      "best_practices": ["使用事件模式精確匹配", "使用結構描述登錄管理事件結構", "使用排程器取代 CloudWatch Events"]
+    },
+    {
+      "id": "step_functions",
+      "name": "AWS Step Functions",
+      "category": "integration",
+      "description": "無伺服器工作流程協調服務",
+      "use_cases": ["工作流程自動化", "微服務協調", "ETL 管線", "人工審核流程"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.025,
+        "unit": "1000 state transitions",
+        "free_tier": "每月 4000 次狀態轉換"
+      },
+      "saa_exam_topics": ["狀態機", "標準 vs Express", "錯誤處理", "平行執行", "Map 狀態"],
+      "best_practices": ["使用 Express 工作流程處理高頻率短期任務", "實作適當的錯誤處理", "使用 Map 狀態處理批次作業"]
+    }
+,
+    {
+      "id": "sagemaker",
+      "name": "Amazon SageMaker",
+      "category": "machine_learning",
+      "description": "全受管機器學習平台",
+      "use_cases": ["模型訓練", "模型部署", "MLOps", "資料標註"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.05,
+        "unit": "hour",
+        "free_tier": "每月 250 小時"
+      },
+      "saa_exam_topics": ["訓練", "推論", "端點", "Notebook", "Ground Truth"],
+      "best_practices": ["使用 Spot 訓練節省成本", "使用多模型端點", "使用 SageMaker Pipelines 自動化 MLOps"]
+    },
+    {
+      "id": "rekognition",
+      "name": "Amazon Rekognition",
+      "category": "machine_learning",
+      "description": "影像和影片分析服務",
+      "use_cases": ["臉部辨識", "物件偵測", "內容審核", "文字偵測"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 1.00,
+        "unit": "1000 images",
+        "free_tier": "每月 5000 張影像"
+      },
+      "saa_exam_topics": ["影像分析", "影片分析", "自訂標籤", "串流分析"],
+      "best_practices": ["使用自訂標籤訓練特定用例", "使用串流分析處理即時影片"]
+    },
+    {
+      "id": "backup",
+      "name": "AWS Backup",
+      "category": "management",
+      "description": "集中式備份服務",
+      "use_cases": ["資料保護", "合規性", "災難復原", "跨區域備份"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0.05,
+        "unit": "GB-month",
+        "free_tier": "無"
+      },
+      "saa_exam_topics": ["備份計畫", "備份保管庫", "跨區域複製", "跨帳戶備份"],
+      "best_practices": ["使用備份計畫自動化備份", "設定跨區域複製", "使用保管庫鎖定確保合規性"]
+    },
+    {
+      "id": "organizations",
+      "name": "AWS Organizations",
+      "category": "management",
+      "description": "多帳戶管理服務",
+      "use_cases": ["帳戶管理", "成本管理", "安全治理", "合規性"],
+      "pricing_model": {
+        "type": "on_demand",
+        "base_price": 0,
+        "unit": "free",
+        "free_tier": "完全免費"
+      },
+      "saa_exam_topics": ["組織單位", "服務控制政策", "合併帳單", "標籤政策"],
+      "best_practices": ["使用 OU 組織帳戶", "使用 SCP 限制權限", "使用合併帳單獲得折扣"]
+    }
+  ]
+}

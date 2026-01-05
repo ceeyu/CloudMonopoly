@@ -1,0 +1,335 @@
+.game {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.game-loading,
+.game-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: var(--spacing-md);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-banner {
+  background-color: #fef2f2;
+  border: 1px solid var(--error-color);
+  color: var(--error-color);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: var(--font-size-sm);
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card-background);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.game-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.game-id {
+  font-family: monospace;
+  background: var(--background-color);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: var(--font-size-sm);
+  /* 長 ID 截斷 */
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.status-waiting {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-in_progress {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-finished {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}
+
+.turn-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
+}
+
+.my-turn {
+  color: var(--primary-color);
+  font-weight: 600;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.game-content {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: var(--spacing-lg);
+}
+
+.game-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 0; /* 防止 grid 溢出 */
+}
+
+.game-right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 0;
+}
+
+.players-section {
+  background: var(--card-background);
+  padding: var(--spacing-lg);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.players-section h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--secondary-color);
+  font-size: var(--font-size-base);
+}
+
+.actions-section {
+  background: var(--card-background);
+  padding: var(--spacing-lg);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.waiting-room {
+  text-align: center;
+}
+
+.waiting-room h3 {
+  margin-bottom: 0.5rem;
+  font-size: var(--font-size-base);
+}
+
+.waiting-room p {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.roll-btn {
+  width: 100%;
+  padding: var(--spacing-lg);
+  font-size: var(--font-size-xl);
+}
+
+.turn-result {
+  background: var(--card-background);
+  padding: var(--spacing-lg);
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.turn-result h3 {
+  margin-bottom: var(--spacing-md);
+  color: var(--secondary-color);
+  font-size: var(--font-size-base);
+}
+
+.turn-result p {
+  margin-bottom: 0.5rem;
+  font-size: var(--font-size-sm);
+}
+
+.turn-result .positive {
+  color: var(--success-color);
+}
+
+.turn-result .negative {
+  color: var(--error-color);
+}
+
+.turn-result .bonus {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.game-finished {
+  text-align: center;
+}
+
+.game-finished h3 {
+  margin-bottom: 0.5rem;
+  font-size: var(--font-size-base);
+}
+
+.game-finished p {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* 大平板響應式設計 */
+@media (max-width: 1024px) {
+  .game-content {
+    grid-template-columns: 1fr 300px;
+    gap: var(--spacing-md);
+  }
+}
+
+/* 平板響應式設計 */
+@media (max-width: 900px) {
+  .game-content {
+    grid-template-columns: 1fr;
+  }
+
+  .game-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .game-info {
+    justify-content: center;
+  }
+
+  .turn-info {
+    justify-content: center;
+  }
+
+  /* 在平板上，玩家列表和操作區域並排 */
+  .game-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+  }
+}
+
+/* 手機響應式設計 */
+@media (max-width: 600px) {
+  .game {
+    gap: var(--spacing-sm);
+  }
+
+  .game-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 8px;
+  }
+
+  .game-info {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .game-id {
+    max-width: 200px;
+    font-size: var(--font-size-xs);
+  }
+
+  .turn-info {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .game-right {
+    grid-template-columns: 1fr;
+  }
+
+  .players-section,
+  .actions-section,
+  .turn-result {
+    padding: var(--spacing-md);
+    border-radius: 8px;
+  }
+
+  .roll-btn {
+    padding: var(--spacing-md);
+    font-size: var(--font-size-lg);
+  }
+}
+
+/* 小手機響應式設計 */
+@media (max-width: 400px) {
+  .game-header {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .game-status {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .players-section h3,
+  .turn-result h3 {
+    font-size: var(--font-size-sm);
+  }
+
+  .roll-btn {
+    font-size: var(--font-size-base);
+  }
+}
+
+/* 橫向模式優化 */
+@media (max-height: 500px) and (orientation: landscape) {
+  .game-content {
+    grid-template-columns: 1fr 280px;
+  }
+
+  .players-section,
+  .actions-section {
+    padding: var(--spacing-sm);
+  }
+
+  .roll-btn {
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-base);
+  }
+}

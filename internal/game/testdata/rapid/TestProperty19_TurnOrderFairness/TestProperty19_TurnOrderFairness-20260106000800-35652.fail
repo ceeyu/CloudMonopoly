@@ -1,0 +1,58 @@
+# 2026/01/06 00:08:00.704761 [TestProperty19_TurnOrderFairness] [rapid] draw numPlayers: 2
+# 2026/01/06 00:08:00.704761 [TestProperty19_TurnOrderFairness] [rapid] draw playerID: "player_cdacc"
+# 2026/01/06 00:08:00.704761 [TestProperty19_TurnOrderFairness] [rapid] draw playerID: "player_gckbb"
+# 2026/01/06 00:08:00.704761 [TestProperty19_TurnOrderFairness] Turn 1: Expected player player_gckbb, got player_cdacc
+# 2026/01/06 00:08:00.704761 [TestProperty19_TurnOrderFairness] Player player_cdacc should have had exactly 1 turn in round, got 2 (initial: 0, final: 2)
+# 2026/01/06 00:08:00.704761 [TestProperty19_TurnOrderFairness] Player player_gckbb should have had exactly 1 turn in round, got 0 (initial: 0, final: 0)
+# 2026/01/06 00:08:00.704761 [TestProperty19_TurnOrderFairness] Round 2, Turn 1: Expected player player_gckbb, got player_cdacc
+# 2026/01/06 00:08:00.704761 [TestProperty19_TurnOrderFairness] Player player_cdacc should have had exactly 2 turns after 2 rounds, got 4
+# 2026/01/06 00:08:00.704761 [TestProperty19_TurnOrderFairness] Player player_gckbb should have had exactly 2 turns after 2 rounds, got 0
+# 
+v0.4.8#12364788022734252172
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x42806534df23b
+0x2
+0x1a198a2ad1d14c
+0x0
+0x1d41130caf072e
+0x3
+0x1516d56f477bfc
+0x0
+0x244bd01e26f3e
+0x0
+0x1ee111e31db2f3
+0x0
+0x7faea81122a43
+0x2
+0xcd3008e7ed089
+0x0
+0x7853d4d9fe370
+0x2
+0x43cbacad4c04a
+0x0
+0x19daa3e6ad17c1
+0x0
+0xdf6d28ad2a7c8
+0x6
+0x31bd6d42d8508
+0x0
+0x600af4687de82
+0x2
+0xcbc820cfdd553
+0x0
+0xf20c3ff5b6068
+0xa
+0x12defcf38c00f6
+0x0
+0xc0b286ad9518
+0x1
+0x19f0e6804cd464
+0x0
+0x205e72a9937b1
+0x1
+0x30d843b5890d
