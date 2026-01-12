@@ -1,16 +1,17 @@
-import { PlayerState, CellType, CELL_TYPES } from '../api/types'
+import { PlayerState, CellType, CellData, CELL_TYPES } from '../api/types'
 import './GameBoard.css'
 
 interface GameBoardProps {
   boardSize: number
   players: PlayerState[]
   currentPlayerId: string
+  cells?: CellData[]  // 從後端取得的格子資料
 }
 
 // 玩家顏色
 const PLAYER_COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4']
 
-function GameBoard({ boardSize, players, currentPlayerId }: GameBoardProps) {
+function GameBoard({ boardSize, players, currentPlayerId, cells }: GameBoardProps) {
   // 計算棋盤佈局 - 使用環形佈局
   const cellsPerSide = Math.ceil(boardSize / 4)
   
@@ -54,13 +55,14 @@ function GameBoard({ boardSize, players, currentPlayerId }: GameBoardProps) {
     }
   }
 
-  // 取得格子類型 (模擬後端邏輯)
+  // 取得格子類型 - 優先使用後端資料，否則使用預設邏輯
   const getCellType = (index: number): CellType => {
+    // 如果有後端資料，使用後端資料
+    if (cells && cells[index]) {
+      return cells[index].type as CellType
+    }
+    // 否則使用預設邏輯（備用）
     if (index === 0) return 'start'
-    if (index % 10 === 0) return 'bonus'
-    if (index % 7 === 0) return 'opportunity'
-    if (index % 5 === 0) return 'fate'
-    if (index % 11 === 0) return 'challenge'
     return 'normal'
   }
 

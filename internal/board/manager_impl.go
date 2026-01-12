@@ -77,45 +77,36 @@ func (m *BoardManager) generateCells(config BoardConfig) []Cell {
 }
 
 // distributeSpecialCells 分配特殊格子
+// 將特殊格子均勻分布在整個棋盤上，確保每種類型的格子都有適當的間隔
 func (m *BoardManager) distributeSpecialCells(config BoardConfig) map[int]CellType {
 	positions := make(map[int]CellType)
 
-	// 均勻分配特殊格子
-	totalSpecial := config.OpportunityCells + config.FateCells + config.ChallengeCells + config.BonusCells
-	interval := (config.Size - 1) / totalSpecial
-	if interval < 1 {
-		interval = 1
+	// 棋盤大小 36，排除起點後有 35 個可用位置 (1-35)
+	// 特殊格子: 機會 6 + 命運 6 + 關卡 4 + 獎勵 2 = 18 個
+	// 普通格子: 35 - 18 = 17 個
+
+	// 為每種類型計算均勻分布的位置
+	// 機會格 (6個): 分布在整個棋盤，間隔約 6 格
+	opportunityPositions := []int{3, 9, 15, 21, 27, 33}
+	// 命運格 (6個): 分布在整個棋盤，間隔約 6 格，與機會格錯開
+	fatePositions := []int{5, 11, 17, 23, 29, 35}
+	// 關卡格 (4個): 分布在整個棋盤，間隔約 9 格
+	challengePositions := []int{7, 16, 25, 34}
+	// 獎勵格 (2個): 分布在棋盤中間和後段
+	bonusPositions := []int{12, 30}
+
+	// 根據配置數量分配（取配置數量和預設位置數量的較小值）
+	for i := 0; i < config.OpportunityCells && i < len(opportunityPositions); i++ {
+		positions[opportunityPositions[i]] = CellOpportunity
 	}
-
-	pos := interval
-	count := 0
-
-	// 機會格
-	for i := 0; i < config.OpportunityCells && pos < config.Size; i++ {
-		positions[pos] = CellOpportunity
-		pos += interval
-		count++
+	for i := 0; i < config.FateCells && i < len(fatePositions); i++ {
+		positions[fatePositions[i]] = CellFate
 	}
-
-	// 命運格
-	for i := 0; i < config.FateCells && pos < config.Size; i++ {
-		positions[pos] = CellFate
-		pos += interval
-		count++
+	for i := 0; i < config.ChallengeCells && i < len(challengePositions); i++ {
+		positions[challengePositions[i]] = CellChallenge
 	}
-
-	// 關卡格
-	for i := 0; i < config.ChallengeCells && pos < config.Size; i++ {
-		positions[pos] = CellChallenge
-		pos += interval
-		count++
-	}
-
-	// 獎勵格
-	for i := 0; i < config.BonusCells && pos < config.Size; i++ {
-		positions[pos] = CellBonus
-		pos += interval
-		count++
+	for i := 0; i < config.BonusCells && i < len(bonusPositions); i++ {
+		positions[bonusPositions[i]] = CellBonus
 	}
 
 	return positions

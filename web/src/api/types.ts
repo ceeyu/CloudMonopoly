@@ -86,6 +86,13 @@ export interface GameConfig {
   difficulty_level: string;
 }
 
+// 格子資料 (從後端取得)
+export interface CellData {
+  position: number;
+  type: CellType;
+  name: string;
+}
+
 // 遊戲狀態回應
 export interface GameStateResponse {
   game_id: string;
@@ -94,6 +101,7 @@ export interface GameStateResponse {
   current_player_id: string;
   players: PlayerState[];
   board_size: number;
+  cells: CellData[];
 }
 
 // 建立遊戲請求

@@ -289,3 +289,46 @@
     font-size: 0.75rem;
   }
 }
+
+
+/* 遊戲 ID 顯示區塊 */
+.game-id-display {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border: 2px solid #4caf50;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.game-id-label {
+  font-weight: 500;
+  color: #2e7d32;
+}
+
+.game-id-value {
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #1b5e20;
+  background: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  flex: 1;
+}
+
+.btn-copy {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.btn-copy:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}

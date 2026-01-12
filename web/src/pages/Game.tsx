@@ -160,6 +160,7 @@ function Game() {
             boardSize={gameState?.board_size || 30}
             players={gameState?.players || []}
             currentPlayerId={playerId}
+            cells={gameState?.cells}
           />
           
           {turnResult && !showEvent && (
@@ -187,14 +188,18 @@ function Game() {
         <div className="game-right">
           <div className="players-section">
             <h3>👥 玩家列表</h3>
-            {gameState?.players.map((player: PlayerState) => (
-              <CompanyStatus 
-                key={player.player_id}
-                player={player}
-                isCurrentPlayer={player.player_id === playerId}
-                isCurrentTurn={player.player_id === gameState.current_player_id}
-              />
-            ))}
+            {gameState?.players && gameState.players.length > 0 ? (
+              gameState.players.map((player: PlayerState) => (
+                <CompanyStatus 
+                  key={player.player_id}
+                  player={player}
+                  isCurrentPlayer={player.player_id === playerId}
+                  isCurrentTurn={player.player_id === gameState.current_player_id}
+                />
+              ))
+            ) : (
+              <p className="no-players">尚無玩家加入</p>
+            )}
           </div>
 
           <div className="actions-section">

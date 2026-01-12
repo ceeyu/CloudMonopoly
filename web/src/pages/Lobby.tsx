@@ -22,12 +22,19 @@ function Lobby() {
     setLoading(true)
     setError(null)
     try {
+      console.log('Creating game with max_players:', maxPlayers)
       const response = await createGame({ max_players: maxPlayers })
-      // 建立後直接進入加入流程
-      setGameIdInput(response.game_id)
-      setMode('join')
+      console.log('Create game response:', response)
+      if (response && response.game_id) {
+        // 建立後直接進入加入流程
+        setGameIdInput(response.game_id)
+        setMode('join')
+      } else {
+        setError('建立遊戲失敗：伺服器回應格式錯誤')
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '建立遊戲失敗')
+      console.error('Create game error:', err)
+      setError(err instanceof Error ? err.message : '建立遊戲失敗，請確認後端服務是否正常運作')
     } finally {
       setLoading(false)
     }
@@ -120,15 +127,30 @@ function Lobby() {
         {mode === 'join' && (
           <div className="form-section">
             <h3>加入遊戲</h3>
-            <div className="form-group">
-              <label>遊戲 ID</label>
-              <input
-                type="text"
-                value={gameIdInput}
-                onChange={(e) => setGameIdInput(e.target.value)}
-                placeholder="輸入遊戲 ID"
-              />
-            </div>
+            {gameIdInput && (
+              <div className="game-id-display">
+                <span className="game-id-label">🎮 遊戲 ID：</span>
+                <span className="game-id-value">{gameIdInput}</span>
+                <button 
+                  className="btn-copy"
+                  onClick={() => navigator.clipboard.writeText(gameIdInput)}
+                  title="複製 ID"
+                >
+                  📋
+                </button>
+              </div>
+            )}
+            {!gameIdInput && (
+              <div className="form-group">
+                <label>遊戲 ID</label>
+                <input
+                  type="text"
+                  value={gameIdInput}
+                  onChange={(e) => setGameIdInput(e.target.value)}
+                  placeholder="輸入遊戲 ID"
+                />
+              </div>
+            )}
             <div className="form-group">
               <label>玩家名稱</label>
               <input

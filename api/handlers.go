@@ -59,6 +59,13 @@ type JoinGameResponse struct {
 	GameID  string `json:"game_id"`
 }
 
+// CellDTO 格子 DTO
+type CellDTO struct {
+	Position int    `json:"position"`
+	Type     string `json:"type"`
+	Name     string `json:"name"`
+}
+
 // GameStateResponse 遊戲狀態回應
 type GameStateResponse struct {
 	GameID          string           `json:"game_id"`
@@ -67,6 +74,7 @@ type GameStateResponse struct {
 	CurrentPlayerID string           `json:"current_player_id"`
 	Players         []PlayerStateDTO `json:"players"`
 	BoardSize       int              `json:"board_size"`
+	Cells           []CellDTO        `json:"cells"`
 }
 
 // PlayerStateDTO 玩家狀態 DTO
@@ -246,8 +254,17 @@ func (h *Handler) GetGameState(c *gin.Context) {
 	}
 
 	boardSize := 0
+	var cells []CellDTO
 	if g.Board != nil {
 		boardSize = g.Board.Size
+		cells = make([]CellDTO, len(g.Board.Cells))
+		for i, cell := range g.Board.Cells {
+			cells[i] = CellDTO{
+				Position: cell.Position,
+				Type:     string(cell.Type),
+				Name:     cell.Name,
+			}
+		}
 	}
 
 	c.JSON(http.StatusOK, GameStateResponse{
@@ -257,6 +274,7 @@ func (h *Handler) GetGameState(c *gin.Context) {
 		CurrentPlayerID: g.CurrentPlayerID,
 		Players:         players,
 		BoardSize:       boardSize,
+		Cells:           cells,
 	})
 }
 

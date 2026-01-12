@@ -14,9 +14,17 @@ import {
 } from './types';
 
 // API 基礎路徑 - 支援環境變數設定
-const API_BASE_URL = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/api/v1` 
-  : '/api/v1';
+// 部署時需要在 .env.production 中設定 VITE_API_URL
+const getApiBaseUrl = () => {
+  // 如果有設定環境變數，使用它
+  if (import.meta.env.VITE_API_URL) {
+    return `${import.meta.env.VITE_API_URL}/api/v1`;
+  }
+  // 本地開發使用相對路徑（會被 vite proxy 處理）
+  return '/api/v1';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // 建立 axios 實例
 const apiClient: AxiosInstance = axios.create({

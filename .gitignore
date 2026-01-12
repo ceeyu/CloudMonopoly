@@ -26,3 +26,8 @@ Thumbs.db
 # Environment
 .env
 .env.local
+.env.production
+web/.env.production
+
+# Deploy secrets (contains AWS account IDs)
+deploy/s3-bucket-policy.json
