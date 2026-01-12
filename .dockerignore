@@ -1,0 +1,30 @@
+# Dependencies
+web/node_modules/
+
+# Build outputs
+web/dist/
+*.exe
+
+# IDE
+.vscode/
+.idea/
+.kiro/
+
+# Git
+.git/
+.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test files
+*_test.go
+testdata/
+
+# Documentation
+*.md
+!README.md

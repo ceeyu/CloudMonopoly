@@ -13,8 +13,10 @@ import {
   EventResponse,
 } from './types';
 
-// API 基礎路徑
-const API_BASE_URL = '/api/v1';
+// API 基礎路徑 - 支援環境變數設定
+const API_BASE_URL = import.meta.env.VITE_API_URL 
+  ? `${import.meta.env.VITE_API_URL}/api/v1` 
+  : '/api/v1';
 
 // 建立 axios 實例
 const apiClient: AxiosInstance = axios.create({
