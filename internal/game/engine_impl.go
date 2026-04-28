@@ -32,14 +32,15 @@ func (e *GameEngine) CreateGame(config GameConfig) (*Game, error) {
 
 	now := time.Now()
 	game := &Game{
-		ID:          e.generateID(),
-		Config:      config,
-		Status:      StatusWaiting,
-		CurrentTurn: 0,
-		Players:     make([]*PlayerState, 0, config.MaxPlayers),
-		Board:       gameBoard,
-		CreatedAt:   now,
-		UpdatedAt:   now,
+		ID:                e.generateID(),
+		Config:            config,
+		Status:            StatusWaiting,
+		CurrentTurn:       0,
+		Players:           make([]*PlayerState, 0, config.MaxPlayers),
+		Board:             gameBoard,
+		CreatedAt:         now,
+		UpdatedAt:         now,
+		MaxTurnsPerPlayer: DefaultMaxTurnsPerPlayer, // 預設 30 回合 - Requirements 2.1
 	}
 
 	e.games[game.ID] = game
@@ -162,6 +163,11 @@ func (e *GameEngine) ExecuteTurn(gameID string, playerID string, action TurnActi
 		return nil, ErrGameNotFound
 	}
 
+	// 檢查遊戲是否已結束 - Requirements 2.1
+	if game.Status == StatusFinished {
+		return nil, ErrGameFinished
+	}
+
 	if game.Status != StatusInProgress {
 		return nil, ErrGameNotStarted
 	}
@@ -182,6 +188,11 @@ func (e *GameEngine) ExecuteTurn(gameID string, playerID string, action TurnActi
 		return nil, ErrPlayerNotFound
 	}
 
+	// 檢查回合限制 - Requirements 2.1
+	if currentPlayer.TurnsPlayed >= game.MaxTurnsPerPlayer {
+		return nil, ErrTurnLimitReached
+	}
+
 	result := &TurnResult{}
 
 	switch action.ActionType {
@@ -189,6 +200,34 @@ func (e *GameEngine) ExecuteTurn(gameID string, playerID string, action TurnActi
 		result = e.handleRollDice(game, currentPlayer)
 	default:
 		return nil, ErrInvalidAction
+	}
+
+	// 更新玩家勝利進度 - Requirements 3.1-3.5
+	currentPlayer.VictoryProgress = CalculateVictoryProgress(currentPlayer)
+	result.VictoryProgress = currentPlayer.VictoryProgress
+
+	// 檢查勝利條件 - Requirements 1.1-1.5
+	if CheckVictory(currentPlayer) {
+		game.Status = StatusFinished
+		game.WinnerID = currentPlayer.PlayerID
+		game.WinReason = "condition_met"
+		result.GameEnded = true
+		result.WinnerID = currentPlayer.PlayerID
+		result.WinReason = "condition_met"
+	} else if !result.DecisionRequired {
+		// 只有在不需要決策時才檢查回合限制
+		// 檢查是否所有玩家都達到回合限制 - Requirements 2.2
+		if e.checkAllPlayersReachedTurnLimit(game) {
+			winner := DetermineWinnerByProgress(game)
+			game.Status = StatusFinished
+			game.WinReason = "turn_limit"
+			if winner != nil {
+				game.WinnerID = winner.PlayerID
+				result.WinnerID = winner.PlayerID
+			}
+			result.GameEnded = true
+			result.WinReason = "turn_limit"
+		}
 	}
 
 	game.UpdatedAt = time.Now()
@@ -271,6 +310,21 @@ func (e *GameEngine) advanceToNextPlayer(game *Game) {
 			game.CurrentTurn++
 		}
 	}
+}
+
+// checkAllPlayersReachedTurnLimit 檢查是否所有玩家都達到回合限制
+// Requirements 2.2: 當所有玩家完成 30 回合時結束遊戲
+func (e *GameEngine) checkAllPlayersReachedTurnLimit(game *Game) bool {
+	if game.MaxTurnsPerPlayer <= 0 {
+		return false
+	}
+
+	for _, p := range game.Players {
+		if p.TurnsPlayed < game.MaxTurnsPerPlayer {
+			return false
+		}
+	}
+	return true
 }
 
 // GetPlayer 取得玩家狀態
@@ -688,6 +742,11 @@ func (e *GameEngine) RecordDecision(gameID string, playerID string, record Decis
 		return ErrGameNotFound
 	}
 
+	// 檢查遊戲是否已結束
+	if game.Status == StatusFinished {
+		return ErrGameFinished
+	}
+
 	// 找到玩家
 	var player *PlayerState
 	for _, p := range game.Players {
@@ -704,10 +763,31 @@ func (e *GameEngine) RecordDecision(gameID string, playerID string, record Decis
 	player.DecisionHistory = append(player.DecisionHistory, record.DecisionRecord)
 	// 記錄詳細決策結果 (用於進度追蹤)
 	player.DecisionOutcomeHistory = append(player.DecisionOutcomeHistory, record)
-	game.UpdatedAt = time.Now()
 
-	// 決策完成後，切換到下一個玩家
-	e.advanceToNextPlayer(game)
+	// 更新玩家勝利進度
+	player.VictoryProgress = CalculateVictoryProgress(player)
+
+	// 檢查勝利條件
+	if CheckVictory(player) {
+		game.Status = StatusFinished
+		game.WinnerID = player.PlayerID
+		game.WinReason = "condition_met"
+	} else {
+		// 決策完成後，切換到下一個玩家
+		e.advanceToNextPlayer(game)
+
+		// 檢查是否所有玩家都達到回合限制
+		if e.checkAllPlayersReachedTurnLimit(game) {
+			winner := DetermineWinnerByProgress(game)
+			game.Status = StatusFinished
+			game.WinReason = "turn_limit"
+			if winner != nil {
+				game.WinnerID = winner.PlayerID
+			}
+		}
+	}
+
+	game.UpdatedAt = time.Now()
 
 	return nil
 }

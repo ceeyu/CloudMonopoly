@@ -20,6 +20,11 @@ const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) {
     return `${import.meta.env.VITE_API_URL}/api/v1`;
   }
+  // CloudFront 部署時的 fallback
+  if (typeof window !== 'undefined' && window.location.hostname.includes('cloudfront.net')) {
+    // CloudFront 部署時，請在 .env.production 中設定 VITE_API_URL
+    return '/api/v1';
+  }
   // 本地開發使用相對路徑（會被 vite proxy 處理）
   return '/api/v1';
 };

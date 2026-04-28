@@ -1,10 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getGameState, executeTurn, startGame, submitDecision, getRandomEvent } from '../api/client'
-import { GameStateResponse, TurnResponse, PlayerState, EventResponse, DecisionResponse } from '../api/types'
+import { GameStateResponse, TurnResponse, PlayerState, EventResponse, DecisionResponse, CompanyType } from '../api/types'
 import GameBoard from '../components/GameBoard'
 import CompanyStatus from '../components/CompanyStatus'
 import EventModal from '../components/EventModal'
+import GameRulesModal from '../components/GameRulesModal'
+import VictoryModal from '../components/VictoryModal'
 import './Game.css'
 
 function Game() {
@@ -17,13 +19,30 @@ function Game() {
   const [showEvent, setShowEvent] = useState(false)
   const [currentEvent, setCurrentEvent] = useState<EventResponse | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
+  
+  // 遊戲規則彈窗狀態 - Requirements 4.1
+  const [showRulesModal, setShowRulesModal] = useState(false)
+  const hasShownRulesRef = useRef(false)
+  
+  // 勝利彈窗狀態 - Requirements 5.1
+  const [showVictoryModal, setShowVictoryModal] = useState(false)
+  const hasShownVictoryRef = useRef(false)
 
-  const playerId = localStorage.getItem('playerId') || ''
+  const playerId = sessionStorage.getItem('playerId') || ''
+
+  const gameStateRef = useRef<GameStateResponse | null>(null)
 
   const fetchGameState = useCallback(async () => {
     if (!gameId) return
     try {
       const state = await getGameState(gameId)
+      
+      // 如果當前玩家改變了，清除回合結果（除非正在顯示事件）
+      if (gameStateRef.current && state.current_player_id !== gameStateRef.current.current_player_id && !showEvent) {
+        setTurnResult(null)
+      }
+      
+      gameStateRef.current = state
       setGameState(state)
       setError(null)
     } catch (err) {
@@ -31,7 +50,7 @@ function Game() {
     } finally {
       setLoading(false)
     }
-  }, [gameId])
+  }, [gameId, showEvent])
 
   useEffect(() => {
     fetchGameState()
@@ -39,6 +58,22 @@ function Game() {
     const interval = setInterval(fetchGameState, 3000)
     return () => clearInterval(interval)
   }, [fetchGameState])
+
+  // 遊戲開始時顯示規則彈窗 - Requirements 4.1
+  useEffect(() => {
+    if (gameState?.status === 'in_progress' && !hasShownRulesRef.current) {
+      setShowRulesModal(true)
+      hasShownRulesRef.current = true
+    }
+  }, [gameState?.status])
+
+  // 遊戲結束時顯示勝利彈窗 - Requirements 5.1
+  useEffect(() => {
+    if (gameState?.status === 'finished' && gameState?.winner_id && !hasShownVictoryRef.current) {
+      setShowVictoryModal(true)
+      hasShownVictoryRef.current = true
+    }
+  }, [gameState?.status, gameState?.winner_id])
 
   const handleStartGame = async () => {
     if (!gameId) return
@@ -71,8 +106,16 @@ function Game() {
           setShowEvent(true)
         } catch (eventErr) {
           console.error('Failed to get event:', eventErr)
-          // 如果取得事件失敗，仍然顯示回合結果
+          // 如果取得事件失敗，清除回合結果讓遊戲繼續
+          setTimeout(() => {
+            setTurnResult(null)
+          }, 3000)
         }
+      } else {
+        // 如果不需要決策（普通格子或獎勵格），3秒後清除回合結果
+        setTimeout(() => {
+          setTurnResult(null)
+        }, 3000)
       }
       
       await fetchGameState()
@@ -103,6 +146,27 @@ function Game() {
     setCurrentEvent(null)
     setTurnResult(null)
   }
+
+  // 關閉規則彈窗 - Requirements 4.5
+  const handleStartFromRules = () => {
+    setShowRulesModal(false)
+  }
+
+  // 關閉勝利彈窗並返回大廳 - Requirements 5.4
+  const handleCloseVictory = () => {
+    setShowVictoryModal(false)
+    navigate('/')
+  }
+
+  // 取得當前玩家的公司類型
+  const currentPlayerCompanyType = gameState?.players.find(
+    p => p.player_id === playerId
+  )?.company?.type as CompanyType | null
+
+  // 取得贏家資訊
+  const winner = gameState?.winner_id 
+    ? gameState.players.find(p => p.player_id === gameState.winner_id) || null
+    : null
 
   const isMyTurn = gameState?.current_player_id === playerId
   const isWaiting = gameState?.status === 'waiting'
@@ -232,7 +296,18 @@ function Game() {
             {isFinished && (
               <div className="game-finished">
                 <h3>🏆 遊戲結束</h3>
-                <p>恭喜完成遊戲！</p>
+                {winner ? (
+                  <p>恭喜 {winner.player_name} 獲勝！</p>
+                ) : (
+                  <p>恭喜完成遊戲！</p>
+                )}
+                <button 
+                  className="btn btn-secondary" 
+                  onClick={() => setShowVictoryModal(true)}
+                  style={{ marginBottom: '0.5rem' }}
+                >
+                  查看結果
+                </button>
                 <button className="btn btn-primary" onClick={() => navigate('/')}>
                   返回大廳
                 </button>
@@ -249,6 +324,22 @@ function Game() {
           onClose={handleCloseEvent}
         />
       )}
+
+      {/* 遊戲規則彈窗 - Requirements 4.1, 4.2, 4.3, 4.4, 4.5, 4.6 */}
+      <GameRulesModal
+        isOpen={showRulesModal}
+        onStart={handleStartFromRules}
+        currentPlayerCompanyType={currentPlayerCompanyType}
+      />
+
+      {/* 勝利彈窗 - Requirements 5.1, 5.2, 5.3, 5.4, 5.5 */}
+      <VictoryModal
+        isOpen={showVictoryModal}
+        winner={winner}
+        players={gameState?.players || []}
+        winReason={gameState?.win_reason || 'condition_met'}
+        onClose={handleCloseVictory}
+      />
     </div>
   )
 }

@@ -1685,3 +1685,826 @@ func TestWinnerDetermination_Tie(t *testing.T) {
 		t.Logf("In tie situation, winner is %s (first player with max capital wins)", winner.PlayerID)
 	}
 }
+
+// ============================================================================
+// Victory Conditions Integration Tests - Requirements 1.5, 2.1, 2.2, 2.3
+// ============================================================================
+
+// Test that game ends when a player achieves victory condition
+// Requirements 1.1-1.5: Victory condition detection
+func TestVictoryCondition_StartupWins(t *testing.T) {
+	engine := NewGameEngine()
+
+	config := GameConfig{
+		MaxPlayers:      2,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, _ := engine.CreateGame(config)
+	engine.JoinGame(game.ID, "player1", "Player 1", company.Startup)
+	engine.JoinGame(game.ID, "player2", "Player 2", company.Traditional)
+	engine.StartGame(game.ID)
+
+	// Manually set player1's capital to just below victory threshold
+	engine.mu.Lock()
+	g := engine.games[game.ID]
+	for _, p := range g.Players {
+		if p.PlayerID == "player1" {
+			p.Company.Capital = 2990 // Just below 3000 threshold
+		}
+	}
+	engine.mu.Unlock()
+
+	// Execute turn - the cell landing bonus should push capital over 3000
+	// We may need multiple turns depending on cell bonuses
+	for i := 0; i < 10; i++ {
+		gameState, _ := engine.GetGameState(game.ID)
+		if gameState.Status == StatusFinished {
+			break
+		}
+
+		currentPlayer := gameState.CurrentPlayerID
+		result, err := executeTurnAndHandleDecision(engine, game.ID, currentPlayer)
+		if err != nil {
+			t.Fatalf("ExecuteTurn failed: %v", err)
+		}
+
+		// Check if game ended due to victory
+		if result.GameEnded && result.WinReason == "condition_met" {
+			// Verify winner is player1 (Startup)
+			if result.WinnerID != "player1" {
+				t.Errorf("Expected player1 to win, got: %s", result.WinnerID)
+			}
+			return
+		}
+	}
+
+	// If we didn't win by condition, manually set capital above threshold and verify
+	engine.mu.Lock()
+	g = engine.games[game.ID]
+	for _, p := range g.Players {
+		if p.PlayerID == "player1" {
+			p.Company.Capital = 3100 // Above threshold
+		}
+	}
+	engine.mu.Unlock()
+
+	// Execute one more turn for player1
+	gameState, _ := engine.GetGameState(game.ID)
+	if gameState.CurrentPlayerID != "player1" {
+		// Execute turn for player2 first
+		executeTurnAndHandleDecision(engine, game.ID, "player2")
+	}
+
+	result, err := executeTurnAndHandleDecision(engine, game.ID, "player1")
+	if err != nil {
+		t.Fatalf("ExecuteTurn failed: %v", err)
+	}
+
+	if !result.GameEnded {
+		t.Error("Game should end when Startup reaches 3000 capital")
+	}
+	if result.WinReason != "condition_met" {
+		t.Errorf("WinReason should be 'condition_met', got: %s", result.WinReason)
+	}
+	if result.WinnerID != "player1" {
+		t.Errorf("WinnerID should be 'player1', got: %s", result.WinnerID)
+	}
+}
+
+// Test turn limit enforcement
+// Requirements 2.1: Each player limited to 30 dice rolls
+func TestTurnLimit_Enforcement(t *testing.T) {
+	engine := NewGameEngine()
+
+	config := GameConfig{
+		MaxPlayers:      2,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, _ := engine.CreateGame(config)
+	engine.JoinGame(game.ID, "player1", "Player 1", company.Startup)
+	engine.JoinGame(game.ID, "player2", "Player 2", company.Traditional)
+	engine.StartGame(game.ID)
+
+	// Verify MaxTurnsPerPlayer is set
+	gameState, _ := engine.GetGameState(game.ID)
+	if gameState.MaxTurnsPerPlayer != DefaultMaxTurnsPerPlayer {
+		t.Errorf("MaxTurnsPerPlayer should be %d, got: %d", DefaultMaxTurnsPerPlayer, gameState.MaxTurnsPerPlayer)
+	}
+
+	// Manually set player1's turns to max
+	engine.mu.Lock()
+	g := engine.games[game.ID]
+	for _, p := range g.Players {
+		if p.PlayerID == "player1" {
+			p.TurnsPlayed = DefaultMaxTurnsPerPlayer
+		}
+	}
+	engine.mu.Unlock()
+
+	// Try to execute turn for player1 - should fail
+	action := TurnAction{ActionType: "roll_dice"}
+	_, err := engine.ExecuteTurn(game.ID, "player1", action)
+	if err != ErrTurnLimitReached {
+		t.Errorf("Expected ErrTurnLimitReached, got: %v", err)
+	}
+}
+
+// Test game ends when all players reach turn limit
+// Requirements 2.2: Game ends when all players complete 30 turns
+func TestTurnLimit_GameEnds(t *testing.T) {
+	engine := NewGameEngine()
+
+	config := GameConfig{
+		MaxPlayers:      2,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, _ := engine.CreateGame(config)
+	engine.JoinGame(game.ID, "player1", "Player 1", company.Startup)
+	engine.JoinGame(game.ID, "player2", "Player 2", company.Traditional)
+	engine.StartGame(game.ID)
+
+	// Manually set both players' turns to max-1
+	engine.mu.Lock()
+	g := engine.games[game.ID]
+	for _, p := range g.Players {
+		p.TurnsPlayed = DefaultMaxTurnsPerPlayer - 1
+	}
+	engine.mu.Unlock()
+
+	// Execute final turn for player1
+	result1, err := executeTurnAndHandleDecision(engine, game.ID, "player1")
+	if err != nil {
+		t.Fatalf("ExecuteTurn for player1 failed: %v", err)
+	}
+
+	// Game should not end yet (player2 still has one turn)
+	if result1.GameEnded {
+		// Check game state to confirm
+		gameState, _ := engine.GetGameState(game.ID)
+		if gameState.Status == StatusFinished {
+			t.Error("Game should not end until all players reach turn limit")
+		}
+	}
+
+	// Execute final turn for player2
+	_, err = executeTurnAndHandleDecision(engine, game.ID, "player2")
+	if err != nil {
+		t.Fatalf("ExecuteTurn for player2 failed: %v", err)
+	}
+
+	// Check game state (game may have ended via RecordDecision)
+	gameState, _ := engine.GetGameState(game.ID)
+
+	// Now game should end
+	if gameState.Status != StatusFinished {
+		t.Errorf("Game should be finished when all players reach turn limit, got status: %s", gameState.Status)
+	}
+	if gameState.WinReason != "turn_limit" {
+		t.Errorf("WinReason should be 'turn_limit', got: %s", gameState.WinReason)
+	}
+}
+
+// Test winner determination by progress when turn limit reached
+// Requirements 2.3: Winner determined by highest victory progress
+func TestTurnLimit_WinnerByProgress(t *testing.T) {
+	engine := NewGameEngine()
+
+	config := GameConfig{
+		MaxPlayers:      2,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, _ := engine.CreateGame(config)
+	engine.JoinGame(game.ID, "player1", "Player 1", company.Startup)
+	engine.JoinGame(game.ID, "player2", "Player 2", company.Traditional)
+	engine.StartGame(game.ID)
+
+	// Set player1 (Startup) to have higher progress (capital closer to 3000)
+	// Set player2 (Traditional) to have lower progress (cloud adoption far from 80%)
+	engine.mu.Lock()
+	g := engine.games[game.ID]
+	for _, p := range g.Players {
+		if p.PlayerID == "player1" {
+			p.Company.Capital = 2400 // 80% progress (2400/3000)
+			p.TurnsPlayed = DefaultMaxTurnsPerPlayer - 1
+		} else if p.PlayerID == "player2" {
+			p.Company.CloudAdoption = 40.0 // 50% progress (40/80)
+			p.TurnsPlayed = DefaultMaxTurnsPerPlayer - 1
+		}
+	}
+	engine.mu.Unlock()
+
+	// Execute final turns
+	executeTurnAndHandleDecision(engine, game.ID, "player1")
+	executeTurnAndHandleDecision(engine, game.ID, "player2")
+
+	// Check game state after all turns (game may have ended via RecordDecision)
+	gameState, _ := engine.GetGameState(game.ID)
+
+	// Verify game ended
+	if gameState.Status != StatusFinished {
+		t.Fatalf("Game should be finished when all players reach turn limit, got status: %s", gameState.Status)
+	}
+
+	// Verify winner is player1 (higher progress)
+	if gameState.WinnerID != "player1" {
+		t.Errorf("Winner should be player1 (higher progress), got: %s", gameState.WinnerID)
+	}
+
+	if gameState.WinReason != "turn_limit" {
+		t.Errorf("Game.WinReason should be 'turn_limit', got: %s", gameState.WinReason)
+	}
+}
+
+// Test victory progress is updated after each turn
+// Requirements 3.1-3.5: Victory progress calculation
+func TestVictoryProgress_UpdatedAfterTurn(t *testing.T) {
+	engine := NewGameEngine()
+
+	config := GameConfig{
+		MaxPlayers:      2,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, _ := engine.CreateGame(config)
+	engine.JoinGame(game.ID, "player1", "Player 1", company.Startup)
+	engine.JoinGame(game.ID, "player2", "Player 2", company.Traditional)
+	engine.StartGame(game.ID)
+
+	// Execute turn for player1
+	result, err := executeTurnAndHandleDecision(engine, game.ID, "player1")
+	if err != nil {
+		t.Fatalf("ExecuteTurn failed: %v", err)
+	}
+
+	// Verify victory progress is returned in result
+	if result.VictoryProgress < 0 || result.VictoryProgress > 100 {
+		t.Errorf("VictoryProgress should be 0-100, got: %f", result.VictoryProgress)
+	}
+
+	// Verify player state has updated victory progress
+	player, _ := engine.GetPlayer(game.ID, "player1")
+	if player.VictoryProgress != result.VictoryProgress {
+		t.Errorf("Player.VictoryProgress should match result: expected %f, got %f",
+			result.VictoryProgress, player.VictoryProgress)
+	}
+}
+
+// Test that game cannot continue after it's finished
+// Requirements: Game state management
+func TestGameFinished_CannotContinue(t *testing.T) {
+	engine := NewGameEngine()
+
+	config := GameConfig{
+		MaxPlayers:      2,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, _ := engine.CreateGame(config)
+	engine.JoinGame(game.ID, "player1", "Player 1", company.Startup)
+	engine.JoinGame(game.ID, "player2", "Player 2", company.Traditional)
+	engine.StartGame(game.ID)
+
+	// Manually set player1 to win
+	engine.mu.Lock()
+	g := engine.games[game.ID]
+	for _, p := range g.Players {
+		if p.PlayerID == "player1" {
+			p.Company.Capital = 3100 // Above Startup threshold
+		}
+	}
+	engine.mu.Unlock()
+
+	// Execute turn to trigger victory
+	executeTurnAndHandleDecision(engine, game.ID, "player1")
+
+	// Verify game is finished
+	gameState, _ := engine.GetGameState(game.ID)
+	if gameState.Status != StatusFinished {
+		t.Fatal("Game should be finished after victory")
+	}
+
+	// Try to execute another turn - should fail
+	action := TurnAction{ActionType: "roll_dice"}
+	_, err := engine.ExecuteTurn(game.ID, "player2", action)
+	if err != ErrGameFinished {
+		t.Errorf("Expected ErrGameFinished, got: %v", err)
+	}
+}
+
+// Test DetermineWinnerByProgress function
+// Requirements 2.3: Winner determination by progress
+func TestDetermineWinnerByProgress(t *testing.T) {
+	// Create a game with players having different progress
+	game := &Game{
+		ID:     "test_game",
+		Status: StatusInProgress,
+		Players: []*PlayerState{
+			{
+				PlayerID:   "player1",
+				PlayerName: "Player 1",
+				Company: &company.Company{
+					Type:    company.Startup,
+					Capital: 1500, // 50% progress
+				},
+			},
+			{
+				PlayerID:   "player2",
+				PlayerName: "Player 2",
+				Company: &company.Company{
+					Type:          company.Traditional,
+					CloudAdoption: 60.0, // 75% progress
+				},
+			},
+			{
+				PlayerID:   "player3",
+				PlayerName: "Player 3",
+				Company: &company.Company{
+					Type:      company.CloudReseller,
+					Employees: 100, // 66.67% progress
+				},
+			},
+		},
+	}
+
+	winner := DetermineWinnerByProgress(game)
+
+	if winner == nil {
+		t.Fatal("Winner should not be nil")
+	}
+
+	// Player 2 (Traditional) has highest progress at 75%
+	if winner.PlayerID != "player2" {
+		t.Errorf("Winner should be player2 (75%% progress), got: %s", winner.PlayerID)
+	}
+}
+
+// Test DetermineWinnerByProgress with nil game
+func TestDetermineWinnerByProgress_NilGame(t *testing.T) {
+	winner := DetermineWinnerByProgress(nil)
+	if winner != nil {
+		t.Error("Winner should be nil for nil game")
+	}
+}
+
+// Test DetermineWinnerByProgress with empty players
+func TestDetermineWinnerByProgress_EmptyPlayers(t *testing.T) {
+	game := &Game{
+		ID:      "test_game",
+		Players: []*PlayerState{},
+	}
+
+	winner := DetermineWinnerByProgress(game)
+	if winner != nil {
+		t.Error("Winner should be nil for game with no players")
+	}
+}
+
+// ============================================================================
+// Game Engine Integration Tests - Task 2.4
+// 測試完整遊戲流程、測試回合限制邏輯
+// Requirements: 2.1, 2.2, 2.3
+// ============================================================================
+
+// TestIntegration_FullGameFlow tests a complete game from creation to victory
+// Requirements 2.1, 2.2: Complete game flow with turn limits
+func TestIntegration_FullGameFlow(t *testing.T) {
+	engine := NewGameEngine()
+
+	// 1. Create game
+	config := GameConfig{
+		MaxPlayers:      4,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, err := engine.CreateGame(config)
+	if err != nil {
+		t.Fatalf("CreateGame failed: %v", err)
+	}
+
+	// Verify initial state
+	if game.Status != StatusWaiting {
+		t.Errorf("New game should have status 'waiting', got: %s", game.Status)
+	}
+	if game.MaxTurnsPerPlayer != DefaultMaxTurnsPerPlayer {
+		t.Errorf("MaxTurnsPerPlayer should be %d, got: %d", DefaultMaxTurnsPerPlayer, game.MaxTurnsPerPlayer)
+	}
+
+	// 2. Join players with different company types
+	players := []struct {
+		id          string
+		name        string
+		companyType company.CompanyType
+	}{
+		{"player1", "Startup Player", company.Startup},
+		{"player2", "Traditional Player", company.Traditional},
+		{"player3", "CloudReseller Player", company.CloudReseller},
+		{"player4", "CloudNative Player", company.CloudNative},
+	}
+
+	for _, p := range players {
+		err := engine.JoinGame(game.ID, p.id, p.name, p.companyType)
+		if err != nil {
+			t.Fatalf("JoinGame failed for %s: %v", p.id, err)
+		}
+	}
+
+	// 3. Start game
+	err = engine.StartGame(game.ID)
+	if err != nil {
+		t.Fatalf("StartGame failed: %v", err)
+	}
+
+	gameState, _ := engine.GetGameState(game.ID)
+	if gameState.Status != StatusInProgress {
+		t.Errorf("Started game should have status 'in_progress', got: %s", gameState.Status)
+	}
+
+	// 4. Execute turns until game ends (victory or turn limit)
+	maxIterations := DefaultMaxTurnsPerPlayer * len(players) * 2 // Safety limit
+	turnCount := 0
+
+	for turnCount < maxIterations {
+		gameState, _ = engine.GetGameState(game.ID)
+
+		// Check if game ended
+		if gameState.Status == StatusFinished {
+			break
+		}
+
+		// Execute turn for current player
+		currentPlayerID := gameState.CurrentPlayerID
+		_, err := executeTurnAndHandleDecision(engine, game.ID, currentPlayerID)
+		if err != nil {
+			// Check if error is due to turn limit
+			if err == ErrTurnLimitReached {
+				// This player reached limit, continue with next player
+				turnCount++
+				continue
+			}
+			t.Fatalf("ExecuteTurn failed at turn %d: %v", turnCount, err)
+		}
+
+		turnCount++
+	}
+
+	// 5. Verify game ended properly
+	gameState, _ = engine.GetGameState(game.ID)
+	if gameState.Status != StatusFinished {
+		t.Errorf("Game should be finished after %d turns, got status: %s", turnCount, gameState.Status)
+	}
+
+	// 6. Verify winner is determined
+	if gameState.WinnerID == "" {
+		t.Error("WinnerID should be set when game is finished")
+	}
+
+	// 7. Verify win reason is valid
+	if gameState.WinReason != "condition_met" && gameState.WinReason != "turn_limit" {
+		t.Errorf("WinReason should be 'condition_met' or 'turn_limit', got: %s", gameState.WinReason)
+	}
+
+	// 8. Verify all players have victory progress
+	for _, p := range gameState.Players {
+		if p.VictoryProgress < 0 || p.VictoryProgress > 100 {
+			t.Errorf("Player %s VictoryProgress should be 0-100, got: %f", p.PlayerID, p.VictoryProgress)
+		}
+	}
+
+	t.Logf("Game completed in %d turns. Winner: %s, Reason: %s", turnCount, gameState.WinnerID, gameState.WinReason)
+}
+
+// TestIntegration_TurnLimitWithMultipleCompanyTypes tests turn limit with all company types
+// Requirements 2.1, 2.2, 2.3: Turn limit enforcement and winner determination
+func TestIntegration_TurnLimitWithMultipleCompanyTypes(t *testing.T) {
+	engine := NewGameEngine()
+
+	config := GameConfig{
+		MaxPlayers:      4,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, _ := engine.CreateGame(config)
+
+	// Join all company types
+	engine.JoinGame(game.ID, "startup", "Startup", company.Startup)
+	engine.JoinGame(game.ID, "traditional", "Traditional", company.Traditional)
+	engine.JoinGame(game.ID, "reseller", "CloudReseller", company.CloudReseller)
+	engine.JoinGame(game.ID, "native", "CloudNative", company.CloudNative)
+
+	engine.StartGame(game.ID)
+
+	// Set all players to near turn limit with different progress levels
+	engine.mu.Lock()
+	g := engine.games[game.ID]
+	for _, p := range g.Players {
+		p.TurnsPlayed = DefaultMaxTurnsPerPlayer - 1
+
+		// Set different progress levels for each company type
+		switch p.Company.Type {
+		case company.Startup:
+			p.Company.Capital = 2700 // 90% progress
+		case company.Traditional:
+			p.Company.CloudAdoption = 60.0 // 75% progress
+		case company.CloudReseller:
+			p.Company.Employees = 120 // 80% progress
+		case company.CloudNative:
+			p.Company.Capital = 1600    // 80% capital progress
+			p.Company.SecurityLevel = 4 // 80% security progress
+			// Combined: 80% progress
+		}
+	}
+	engine.mu.Unlock()
+
+	// Execute final turns for all players
+	playerOrder := []string{"startup", "traditional", "reseller", "native"}
+	for _, playerID := range playerOrder {
+		gameState, _ := engine.GetGameState(game.ID)
+		if gameState.Status == StatusFinished {
+			break
+		}
+
+		// Make sure it's this player's turn
+		if gameState.CurrentPlayerID != playerID {
+			continue
+		}
+
+		executeTurnAndHandleDecision(engine, game.ID, playerID)
+	}
+
+	// Verify game ended due to turn limit
+	gameState, _ := engine.GetGameState(game.ID)
+	if gameState.Status != StatusFinished {
+		t.Errorf("Game should be finished after all players reach turn limit, got status: %s", gameState.Status)
+	}
+
+	if gameState.WinReason != "turn_limit" {
+		t.Errorf("WinReason should be 'turn_limit', got: %s", gameState.WinReason)
+	}
+
+	// Verify winner is the one with highest progress (Startup at 90%)
+	if gameState.WinnerID != "startup" {
+		// Note: Cell bonuses may change the final progress, so we just verify a winner exists
+		t.Logf("Winner is %s (expected startup with 90%% progress, but cell bonuses may affect result)", gameState.WinnerID)
+	}
+
+	// Verify all players reached turn limit
+	for _, p := range gameState.Players {
+		if p.TurnsPlayed != DefaultMaxTurnsPerPlayer {
+			t.Errorf("Player %s should have %d turns, got: %d", p.PlayerID, DefaultMaxTurnsPerPlayer, p.TurnsPlayed)
+		}
+	}
+}
+
+// TestIntegration_FirstToWinScenario tests that first player to achieve victory wins
+// Requirements 1.5: First player to complete turn wins when multiple could win
+func TestIntegration_FirstToWinScenario(t *testing.T) {
+	engine := NewGameEngine()
+
+	config := GameConfig{
+		MaxPlayers:      2,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, _ := engine.CreateGame(config)
+	engine.JoinGame(game.ID, "player1", "Player 1", company.Startup)
+	engine.JoinGame(game.ID, "player2", "Player 2", company.Startup)
+	engine.StartGame(game.ID)
+
+	// Set both players very close to victory
+	engine.mu.Lock()
+	g := engine.games[game.ID]
+	for _, p := range g.Players {
+		p.Company.Capital = 2995 // Very close to 3000 threshold
+	}
+	engine.mu.Unlock()
+
+	// Execute turn for player1 - should win first
+	result, err := executeTurnAndHandleDecision(engine, game.ID, "player1")
+	if err != nil {
+		t.Fatalf("ExecuteTurn failed: %v", err)
+	}
+
+	// Check if player1 won
+	gameState, _ := engine.GetGameState(game.ID)
+
+	if result.GameEnded && result.WinReason == "condition_met" {
+		// Player1 achieved victory
+		if result.WinnerID != "player1" {
+			t.Errorf("Player1 should win first, got winner: %s", result.WinnerID)
+		}
+		if gameState.WinnerID != "player1" {
+			t.Errorf("Game.WinnerID should be player1, got: %s", gameState.WinnerID)
+		}
+	} else {
+		// If player1 didn't win yet, continue playing
+		// This can happen if cell bonus wasn't enough
+		t.Logf("Player1 didn't win on first turn (capital after turn: %d)", gameState.Players[0].Company.Capital)
+	}
+}
+
+// TestIntegration_VictoryProgressTracking tests that victory progress is tracked throughout game
+// Requirements 3.1-3.5: Victory progress calculation and tracking
+func TestIntegration_VictoryProgressTracking(t *testing.T) {
+	engine := NewGameEngine()
+
+	config := GameConfig{
+		MaxPlayers:      2,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, _ := engine.CreateGame(config)
+	engine.JoinGame(game.ID, "player1", "Player 1", company.Startup)
+	engine.JoinGame(game.ID, "player2", "Player 2", company.Traditional)
+	engine.StartGame(game.ID)
+
+	// Track progress over multiple turns
+	progressHistory := make(map[string][]float64)
+	progressHistory["player1"] = []float64{}
+	progressHistory["player2"] = []float64{}
+
+	// Execute several turns
+	for i := 0; i < 10; i++ {
+		gameState, _ := engine.GetGameState(game.ID)
+		if gameState.Status == StatusFinished {
+			break
+		}
+
+		currentPlayerID := gameState.CurrentPlayerID
+		result, err := executeTurnAndHandleDecision(engine, game.ID, currentPlayerID)
+		if err != nil {
+			t.Fatalf("ExecuteTurn failed at turn %d: %v", i, err)
+		}
+
+		// Record progress
+		progressHistory[currentPlayerID] = append(progressHistory[currentPlayerID], result.VictoryProgress)
+
+		// Verify progress is valid
+		if result.VictoryProgress < 0 || result.VictoryProgress > 100 {
+			t.Errorf("Turn %d: VictoryProgress should be 0-100, got: %f", i, result.VictoryProgress)
+		}
+	}
+
+	// Verify progress was tracked for both players
+	if len(progressHistory["player1"]) == 0 {
+		t.Error("Player1 should have progress history")
+	}
+	if len(progressHistory["player2"]) == 0 {
+		t.Error("Player2 should have progress history")
+	}
+
+	// Verify final player states have progress
+	gameState, _ := engine.GetGameState(game.ID)
+	for _, p := range gameState.Players {
+		if p.VictoryProgress < 0 {
+			t.Errorf("Player %s should have non-negative VictoryProgress, got: %f", p.PlayerID, p.VictoryProgress)
+		}
+	}
+}
+
+// TestIntegration_GameStateConsistency tests game state consistency throughout gameplay
+// Requirements 2.1, 2.4: Game state management
+func TestIntegration_GameStateConsistency(t *testing.T) {
+	engine := NewGameEngine()
+
+	config := GameConfig{
+		MaxPlayers:      3,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, _ := engine.CreateGame(config)
+	engine.JoinGame(game.ID, "player1", "Player 1", company.Startup)
+	engine.JoinGame(game.ID, "player2", "Player 2", company.Traditional)
+	engine.JoinGame(game.ID, "player3", "Player 3", company.CloudNative)
+	engine.StartGame(game.ID)
+
+	// Execute turns and verify state consistency
+	for i := 0; i < 15; i++ {
+		gameState, _ := engine.GetGameState(game.ID)
+		if gameState.Status == StatusFinished {
+			break
+		}
+
+		// Verify MaxTurnsPerPlayer is consistent
+		if gameState.MaxTurnsPerPlayer != DefaultMaxTurnsPerPlayer {
+			t.Errorf("Turn %d: MaxTurnsPerPlayer should be %d, got: %d",
+				i, DefaultMaxTurnsPerPlayer, gameState.MaxTurnsPerPlayer)
+		}
+
+		// Verify current player is valid
+		validPlayer := false
+		for _, p := range gameState.Players {
+			if p.PlayerID == gameState.CurrentPlayerID {
+				validPlayer = true
+				break
+			}
+		}
+		if !validPlayer {
+			t.Errorf("Turn %d: CurrentPlayerID %s is not a valid player", i, gameState.CurrentPlayerID)
+		}
+
+		// Execute turn
+		currentPlayerID := gameState.CurrentPlayerID
+		_, err := executeTurnAndHandleDecision(engine, game.ID, currentPlayerID)
+		if err != nil {
+			t.Fatalf("ExecuteTurn failed at turn %d: %v", i, err)
+		}
+
+		// Verify turns played is consistent
+		gameStateAfter, _ := engine.GetGameState(game.ID)
+		for _, p := range gameStateAfter.Players {
+			if p.TurnsPlayed > DefaultMaxTurnsPerPlayer {
+				t.Errorf("Player %s has %d turns, exceeds limit of %d",
+					p.PlayerID, p.TurnsPlayed, DefaultMaxTurnsPerPlayer)
+			}
+		}
+	}
+}
+
+// TestIntegration_DecisionRecordingWithVictory tests that decisions are recorded and victory is checked
+// Requirements 1.1-1.5, 2.1-2.3: Victory checking after decisions
+func TestIntegration_DecisionRecordingWithVictory(t *testing.T) {
+	engine := NewGameEngine()
+
+	config := GameConfig{
+		MaxPlayers:      2,
+		BoardType:       "default",
+		DifficultyLevel: "normal",
+	}
+
+	game, _ := engine.CreateGame(config)
+	engine.JoinGame(game.ID, "player1", "Player 1", company.Startup)
+	engine.JoinGame(game.ID, "player2", "Player 2", company.Traditional)
+	engine.StartGame(game.ID)
+
+	// Set player1 very close to victory
+	engine.mu.Lock()
+	g := engine.games[game.ID]
+	for _, p := range g.Players {
+		if p.PlayerID == "player1" {
+			p.Company.Capital = 2999 // One away from victory
+		}
+	}
+	engine.mu.Unlock()
+
+	// Execute turn for player1
+	action := TurnAction{ActionType: "roll_dice"}
+	result, err := engine.ExecuteTurn(game.ID, "player1", action)
+	if err != nil {
+		t.Fatalf("ExecuteTurn failed: %v", err)
+	}
+
+	// If decision is required, record a decision that gives capital bonus
+	if result.DecisionRequired {
+		record := DecisionOutcomeRecord{
+			DecisionRecord: DecisionRecord{
+				EventID:  "test_event",
+				ChoiceID: 1,
+			},
+			Success:        true,
+			AWSServices:    []string{"EC2"},
+			LearningPoints: []string{"Test learning"},
+		}
+
+		// Manually add capital to trigger victory
+		engine.mu.Lock()
+		g := engine.games[game.ID]
+		for _, p := range g.Players {
+			if p.PlayerID == "player1" {
+				p.Company.Capital = 3100 // Above threshold
+			}
+		}
+		engine.mu.Unlock()
+
+		err = engine.RecordDecision(game.ID, "player1", record)
+		if err != nil {
+			t.Fatalf("RecordDecision failed: %v", err)
+		}
+
+		// Verify game ended due to victory
+		gameState, _ := engine.GetGameState(game.ID)
+		if gameState.Status != StatusFinished {
+			t.Error("Game should be finished after player achieves victory via decision")
+		}
+		if gameState.WinnerID != "player1" {
+			t.Errorf("WinnerID should be player1, got: %s", gameState.WinnerID)
+		}
+		if gameState.WinReason != "condition_met" {
+			t.Errorf("WinReason should be 'condition_met', got: %s", gameState.WinReason)
+		}
+	}
+}

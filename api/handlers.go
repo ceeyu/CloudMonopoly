@@ -68,21 +68,26 @@ type CellDTO struct {
 
 // GameStateResponse 遊戲狀態回應
 type GameStateResponse struct {
-	GameID          string           `json:"game_id"`
-	Status          game.GameStatus  `json:"status"`
-	CurrentTurn     int              `json:"current_turn"`
-	CurrentPlayerID string           `json:"current_player_id"`
-	Players         []PlayerStateDTO `json:"players"`
-	BoardSize       int              `json:"board_size"`
-	Cells           []CellDTO        `json:"cells"`
+	GameID            string           `json:"game_id"`
+	Status            game.GameStatus  `json:"status"`
+	CurrentTurn       int              `json:"current_turn"`
+	CurrentPlayerID   string           `json:"current_player_id"`
+	Players           []PlayerStateDTO `json:"players"`
+	BoardSize         int              `json:"board_size"`
+	Cells             []CellDTO        `json:"cells"`
+	MaxTurnsPerPlayer int              `json:"max_turns_per_player"` // Requirements 2.4
+	WinnerID          string           `json:"winner_id,omitempty"`  // Requirements 2.4
+	WinReason         string           `json:"win_reason,omitempty"` // Requirements 2.4: "condition_met" 或 "turn_limit"
 }
 
 // PlayerStateDTO 玩家狀態 DTO
 type PlayerStateDTO struct {
-	PlayerID   string           `json:"player_id"`
-	PlayerName string           `json:"player_name"`
-	Company    *company.Company `json:"company"`
-	Position   int              `json:"position"`
+	PlayerID        string           `json:"player_id"`
+	PlayerName      string           `json:"player_name"`
+	Company         *company.Company `json:"company"`
+	Position        int              `json:"position"`
+	VictoryProgress float64          `json:"victory_progress"` // Requirements 3.1-3.5: 勝利進度百分比 (0-100)
+	TurnsPlayed     int              `json:"turns_played"`     // 已進行回合數
 }
 
 // TurnRequest 回合動作請求
@@ -102,6 +107,11 @@ type TurnResponse struct {
 	CircuitCompleted bool   `json:"circuit_completed"`
 	DecisionRequired bool   `json:"decision_required"`
 	CellType         string `json:"cell_type"`
+	// Victory-related fields - Requirements 1.1-1.5
+	GameEnded       bool    `json:"game_ended"`           // 遊戲是否結束
+	WinnerID        string  `json:"winner_id,omitempty"`  // 贏家 ID (如果遊戲結束)
+	WinReason       string  `json:"win_reason,omitempty"` // 勝利原因: "condition_met" 或 "turn_limit"
+	VictoryProgress float64 `json:"victory_progress"`     // 當前玩家的勝利進度
 }
 
 // DecisionRequest 決策請求
@@ -113,13 +123,15 @@ type DecisionRequest struct {
 
 // DecisionResponse 決策回應
 type DecisionResponse struct {
-	Success         bool     `json:"success"`
-	Message         string   `json:"message"`
-	Explanation     string   `json:"explanation"`
-	CapitalChange   int64    `json:"capital_change"`
-	EmployeeChange  int      `json:"employee_change"`
-	LearningPoints  []string `json:"learning_points"`
-	AWSBestPractice string   `json:"aws_best_practice"`
+	Success             bool     `json:"success"`
+	Message             string   `json:"message"`
+	Explanation         string   `json:"explanation"`
+	CapitalChange       int64    `json:"capital_change"`
+	EmployeeChange      int      `json:"employee_change"`
+	SecurityChange      int      `json:"security_change"`
+	CloudAdoptionChange float64  `json:"cloud_adoption_change"`
+	LearningPoints      []string `json:"learning_points"`
+	AWSBestPractice     string   `json:"aws_best_practice"`
 }
 
 // EventResponse 事件回應
@@ -233,6 +245,7 @@ func (h *Handler) CreateGame(c *gin.Context) {
 // GetGameState 取得遊戲狀態
 // GET /games/:id
 // Requirements 9.1: REST API for game operations
+// Requirements 2.4, 3.1-3.5: Include victory progress and winner info
 func (h *Handler) GetGameState(c *gin.Context) {
 	gameID := c.Param("id")
 
@@ -242,14 +255,19 @@ func (h *Handler) GetGameState(c *gin.Context) {
 		return
 	}
 
-	// 轉換為 DTO
+	// 轉換為 DTO，包含勝利進度
 	players := make([]PlayerStateDTO, len(g.Players))
 	for i, p := range g.Players {
+		// 計算勝利進度
+		victoryProgress := game.CalculateVictoryProgress(p)
+
 		players[i] = PlayerStateDTO{
-			PlayerID:   p.PlayerID,
-			PlayerName: p.PlayerName,
-			Company:    p.Company,
-			Position:   p.Position,
+			PlayerID:        p.PlayerID,
+			PlayerName:      p.PlayerName,
+			Company:         p.Company,
+			Position:        p.Position,
+			VictoryProgress: victoryProgress,
+			TurnsPlayed:     p.TurnsPlayed,
 		}
 	}
 
@@ -267,14 +285,23 @@ func (h *Handler) GetGameState(c *gin.Context) {
 		}
 	}
 
+	// 設定 MaxTurnsPerPlayer 預設值
+	maxTurnsPerPlayer := g.MaxTurnsPerPlayer
+	if maxTurnsPerPlayer == 0 {
+		maxTurnsPerPlayer = game.DefaultMaxTurnsPerPlayer
+	}
+
 	c.JSON(http.StatusOK, GameStateResponse{
-		GameID:          g.ID,
-		Status:          g.Status,
-		CurrentTurn:     g.CurrentTurn,
-		CurrentPlayerID: g.CurrentPlayerID,
-		Players:         players,
-		BoardSize:       boardSize,
-		Cells:           cells,
+		GameID:            g.ID,
+		Status:            g.Status,
+		CurrentTurn:       g.CurrentTurn,
+		CurrentPlayerID:   g.CurrentPlayerID,
+		Players:           players,
+		BoardSize:         boardSize,
+		Cells:             cells,
+		MaxTurnsPerPlayer: maxTurnsPerPlayer,
+		WinnerID:          g.WinnerID,
+		WinReason:         g.WinReason,
 	})
 }
 
@@ -339,6 +366,7 @@ func (h *Handler) StartGame(c *gin.Context) {
 // ExecuteTurn 執行回合動作
 // POST /games/:id/turn
 // Requirements 9.1, 9.4: REST API for turn operations
+// Requirements 1.1-1.5: Include victory status in response
 func (h *Handler) ExecuteTurn(c *gin.Context) {
 	gameID := c.Param("id")
 
@@ -372,6 +400,10 @@ func (h *Handler) ExecuteTurn(c *gin.Context) {
 		CircuitCompleted: result.CircuitCompleted,
 		DecisionRequired: result.DecisionRequired,
 		CellType:         result.CellType,
+		GameEnded:        result.GameEnded,
+		WinnerID:         result.WinnerID,
+		WinReason:        result.WinReason,
+		VictoryProgress:  result.VictoryProgress,
 	})
 }
 
@@ -437,6 +469,32 @@ func (h *Handler) SubmitDecision(c *gin.Context) {
 		return
 	}
 
+	// 應用決策結果到公司狀態
+	player.Company.Capital += result.ActualOutcome.CapitalChange
+	player.Company.Employees += result.ActualOutcome.EmployeeChange
+	player.Company.SecurityLevel += result.ActualOutcome.SecurityChange
+	player.Company.CloudAdoption += result.ActualOutcome.CloudAdoptionChange
+
+	// 確保數值在合理範圍內
+	if player.Company.Capital < 0 {
+		player.Company.Capital = 0
+	}
+	if player.Company.Employees < 0 {
+		player.Company.Employees = 0
+	}
+	if player.Company.SecurityLevel < 0 {
+		player.Company.SecurityLevel = 0
+	}
+	if player.Company.SecurityLevel > 5 {
+		player.Company.SecurityLevel = 5
+	}
+	if player.Company.CloudAdoption < 0 {
+		player.Company.CloudAdoption = 0
+	}
+	if player.Company.CloudAdoption > 100 {
+		player.Company.CloudAdoption = 100
+	}
+
 	// 記錄決策
 	record := game.DecisionOutcomeRecord{
 		DecisionRecord: game.DecisionRecord{
@@ -455,13 +513,15 @@ func (h *Handler) SubmitDecision(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, DecisionResponse{
-		Success:         result.Success,
-		Message:         result.Message,
-		Explanation:     result.Explanation,
-		CapitalChange:   result.ActualOutcome.CapitalChange,
-		EmployeeChange:  result.ActualOutcome.EmployeeChange,
-		LearningPoints:  result.LearningPoints,
-		AWSBestPractice: result.AWSBestPractice,
+		Success:             result.Success,
+		Message:             result.Message,
+		Explanation:         result.Explanation,
+		CapitalChange:       result.ActualOutcome.CapitalChange,
+		EmployeeChange:      result.ActualOutcome.EmployeeChange,
+		SecurityChange:      result.ActualOutcome.SecurityChange,
+		CloudAdoptionChange: result.ActualOutcome.CloudAdoptionChange,
+		LearningPoints:      result.LearningPoints,
+		AWSBestPractice:     result.AWSBestPractice,
 	})
 }
 
@@ -701,29 +761,53 @@ func (h *Handler) LoadGame(c *gin.Context) {
 		return
 	}
 
-	// 轉換為回應格式
+	// 轉換為回應格式，包含勝利進度
 	players := make([]PlayerStateDTO, len(g.Players))
 	for i, p := range g.Players {
+		// 計算勝利進度
+		victoryProgress := game.CalculateVictoryProgress(p)
+
 		players[i] = PlayerStateDTO{
-			PlayerID:   p.PlayerID,
-			PlayerName: p.PlayerName,
-			Company:    p.Company,
-			Position:   p.Position,
+			PlayerID:        p.PlayerID,
+			PlayerName:      p.PlayerName,
+			Company:         p.Company,
+			Position:        p.Position,
+			VictoryProgress: victoryProgress,
+			TurnsPlayed:     p.TurnsPlayed,
 		}
 	}
 
 	boardSize := 0
+	var cells []CellDTO
 	if g.Board != nil {
 		boardSize = g.Board.Size
+		cells = make([]CellDTO, len(g.Board.Cells))
+		for i, cell := range g.Board.Cells {
+			cells[i] = CellDTO{
+				Position: cell.Position,
+				Type:     string(cell.Type),
+				Name:     cell.Name,
+			}
+		}
+	}
+
+	// 設定 MaxTurnsPerPlayer 預設值
+	maxTurnsPerPlayer := g.MaxTurnsPerPlayer
+	if maxTurnsPerPlayer == 0 {
+		maxTurnsPerPlayer = game.DefaultMaxTurnsPerPlayer
 	}
 
 	c.JSON(http.StatusOK, GameStateResponse{
-		GameID:          g.ID,
-		Status:          g.Status,
-		CurrentTurn:     g.CurrentTurn,
-		CurrentPlayerID: g.CurrentPlayerID,
-		Players:         players,
-		BoardSize:       boardSize,
+		GameID:            g.ID,
+		Status:            g.Status,
+		CurrentTurn:       g.CurrentTurn,
+		CurrentPlayerID:   g.CurrentPlayerID,
+		Players:           players,
+		BoardSize:         boardSize,
+		Cells:             cells,
+		MaxTurnsPerPlayer: maxTurnsPerPlayer,
+		WinnerID:          g.WinnerID,
+		WinReason:         g.WinReason,
 	})
 }
 

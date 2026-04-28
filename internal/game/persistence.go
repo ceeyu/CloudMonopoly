@@ -11,15 +11,18 @@ import (
 // GameStateJSON 用於 JSON 序列化的遊戲狀態結構
 // 使用明確的 JSON tags 確保序列化/反序列化一致性
 type GameStateJSON struct {
-	ID              string            `json:"id"`
-	Config          GameConfigJSON    `json:"config"`
-	Status          GameStatus        `json:"status"`
-	CurrentTurn     int               `json:"current_turn"`
-	CurrentPlayerID string            `json:"current_player_id"`
-	Players         []PlayerStateJSON `json:"players"`
-	Board           *board.Board      `json:"board"`
-	CreatedAt       time.Time         `json:"created_at"`
-	UpdatedAt       time.Time         `json:"updated_at"`
+	ID                string            `json:"id"`
+	Config            GameConfigJSON    `json:"config"`
+	Status            GameStatus        `json:"status"`
+	CurrentTurn       int               `json:"current_turn"`
+	CurrentPlayerID   string            `json:"current_player_id"`
+	Players           []PlayerStateJSON `json:"players"`
+	Board             *board.Board      `json:"board"`
+	CreatedAt         time.Time         `json:"created_at"`
+	UpdatedAt         time.Time         `json:"updated_at"`
+	MaxTurnsPerPlayer int               `json:"max_turns_per_player"` // 每位玩家最大回合數
+	WinnerID          string            `json:"winner_id,omitempty"`  // 贏家 ID
+	WinReason         string            `json:"win_reason,omitempty"` // 勝利原因
 }
 
 // GameConfigJSON 遊戲配置 JSON 結構
@@ -38,6 +41,7 @@ type PlayerStateJSON struct {
 	TurnsPlayed            int                         `json:"turns_played"`
 	DecisionHistory        []DecisionRecordJSON        `json:"decision_history"`
 	DecisionOutcomeHistory []DecisionOutcomeRecordJSON `json:"decision_outcome_history"`
+	VictoryProgress        float64                     `json:"victory_progress"` // 勝利進度百分比
 }
 
 // DecisionRecordJSON 決策記錄 JSON 結構
@@ -71,12 +75,15 @@ func SerializeGameState(game *Game) ([]byte, error) {
 			BoardType:       game.Config.BoardType,
 			DifficultyLevel: game.Config.DifficultyLevel,
 		},
-		Status:          game.Status,
-		CurrentTurn:     game.CurrentTurn,
-		CurrentPlayerID: game.CurrentPlayerID,
-		Board:           game.Board,
-		CreatedAt:       game.CreatedAt,
-		UpdatedAt:       game.UpdatedAt,
+		Status:            game.Status,
+		CurrentTurn:       game.CurrentTurn,
+		CurrentPlayerID:   game.CurrentPlayerID,
+		Board:             game.Board,
+		CreatedAt:         game.CreatedAt,
+		UpdatedAt:         game.UpdatedAt,
+		MaxTurnsPerPlayer: game.MaxTurnsPerPlayer,
+		WinnerID:          game.WinnerID,
+		WinReason:         game.WinReason,
 	}
 
 	// 轉換玩家狀態
@@ -113,12 +120,20 @@ func DeserializeGameState(data []byte) (*Game, error) {
 			BoardType:       jsonState.Config.BoardType,
 			DifficultyLevel: jsonState.Config.DifficultyLevel,
 		},
-		Status:          jsonState.Status,
-		CurrentTurn:     jsonState.CurrentTurn,
-		CurrentPlayerID: jsonState.CurrentPlayerID,
-		Board:           jsonState.Board,
-		CreatedAt:       jsonState.CreatedAt,
-		UpdatedAt:       jsonState.UpdatedAt,
+		Status:            jsonState.Status,
+		CurrentTurn:       jsonState.CurrentTurn,
+		CurrentPlayerID:   jsonState.CurrentPlayerID,
+		Board:             jsonState.Board,
+		CreatedAt:         jsonState.CreatedAt,
+		UpdatedAt:         jsonState.UpdatedAt,
+		MaxTurnsPerPlayer: jsonState.MaxTurnsPerPlayer,
+		WinnerID:          jsonState.WinnerID,
+		WinReason:         jsonState.WinReason,
+	}
+
+	// 如果 MaxTurnsPerPlayer 為 0 且遊戲進行中，設定預設值
+	if game.MaxTurnsPerPlayer == 0 && game.Status == StatusInProgress {
+		game.MaxTurnsPerPlayer = DefaultMaxTurnsPerPlayer
 	}
 
 	// 轉換玩家狀態
@@ -137,11 +152,12 @@ func convertPlayerToJSON(player *PlayerState) PlayerStateJSON {
 	}
 
 	jsonPlayer := PlayerStateJSON{
-		PlayerID:    player.PlayerID,
-		PlayerName:  player.PlayerName,
-		Company:     player.Company,
-		Position:    player.Position,
-		TurnsPlayed: player.TurnsPlayed,
+		PlayerID:        player.PlayerID,
+		PlayerName:      player.PlayerName,
+		Company:         player.Company,
+		Position:        player.Position,
+		TurnsPlayed:     player.TurnsPlayed,
+		VictoryProgress: player.VictoryProgress,
 	}
 
 	// 轉換決策歷史
@@ -181,11 +197,12 @@ func convertJSONToPlayer(jsonPlayer *PlayerStateJSON) *PlayerState {
 	}
 
 	player := &PlayerState{
-		PlayerID:    jsonPlayer.PlayerID,
-		PlayerName:  jsonPlayer.PlayerName,
-		Company:     jsonPlayer.Company,
-		Position:    jsonPlayer.Position,
-		TurnsPlayed: jsonPlayer.TurnsPlayed,
+		PlayerID:        jsonPlayer.PlayerID,
+		PlayerName:      jsonPlayer.PlayerName,
+		Company:         jsonPlayer.Company,
+		Position:        jsonPlayer.Position,
+		TurnsPlayed:     jsonPlayer.TurnsPlayed,
+		VictoryProgress: jsonPlayer.VictoryProgress,
 	}
 
 	// 轉換決策歷史
@@ -256,7 +273,10 @@ func GameStateEquals(a, b *Game) bool {
 	if a.ID != b.ID ||
 		a.Status != b.Status ||
 		a.CurrentTurn != b.CurrentTurn ||
-		a.CurrentPlayerID != b.CurrentPlayerID {
+		a.CurrentPlayerID != b.CurrentPlayerID ||
+		a.MaxTurnsPerPlayer != b.MaxTurnsPerPlayer ||
+		a.WinnerID != b.WinnerID ||
+		a.WinReason != b.WinReason {
 		return false
 	}
 
@@ -296,7 +316,8 @@ func playerStateEquals(a, b *PlayerState) bool {
 	if a.PlayerID != b.PlayerID ||
 		a.PlayerName != b.PlayerName ||
 		a.Position != b.Position ||
-		a.TurnsPlayed != b.TurnsPlayed {
+		a.TurnsPlayed != b.TurnsPlayed ||
+		a.VictoryProgress != b.VictoryProgress {
 		return false
 	}
 

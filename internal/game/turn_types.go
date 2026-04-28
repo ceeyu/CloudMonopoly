@@ -16,6 +16,11 @@ type TurnResult struct {
 	CircuitCompleted bool
 	DecisionRequired bool
 	CellType         string // 落在的格子類型
+	// Victory-related fields - Requirements 1.5, 2.1, 2.2
+	GameEnded       bool    // 遊戲是否結束
+	WinnerID        string  // 贏家 ID (如果遊戲結束)
+	WinReason       string  // 勝利原因: "condition_met" 或 "turn_limit"
+	VictoryProgress float64 // 當前玩家的勝利進度
 }
 
 // CircuitBonus 繞圈獎勵

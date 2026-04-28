@@ -135,6 +135,90 @@ func TestGetGameState_NotFound(t *testing.T) {
 	}
 }
 
+// TestGetGameState_VictoryFields 測試 GetGameState 回應包含勝利相關欄位
+// Requirements 2.4, 3.1-3.5
+func TestGetGameState_VictoryFields(t *testing.T) {
+	router := setupTestRouter()
+
+	// Create a game
+	createReq := CreateGameRequest{MaxPlayers: 2}
+	body, _ := json.Marshal(createReq)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/api/v1/games", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+
+	var createResp CreateGameResponse
+	json.Unmarshal(w.Body.Bytes(), &createResp)
+
+	// Join 2 players with different company types
+	players := []struct {
+		id          string
+		name        string
+		companyType company.CompanyType
+	}{
+		{"p1", "Alice", company.Startup},
+		{"p2", "Bob", company.Traditional},
+	}
+
+	for _, p := range players {
+		joinReq := JoinGameRequest{
+			PlayerID:    p.id,
+			PlayerName:  p.name,
+			CompanyType: p.companyType,
+		}
+		body, _ = json.Marshal(joinReq)
+
+		w = httptest.NewRecorder()
+		req, _ = http.NewRequest("POST", "/api/v1/games/"+createResp.GameID+"/join", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		router.ServeHTTP(w, req)
+	}
+
+	// Start the game
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/api/v1/games/"+createResp.GameID+"/start", nil)
+	router.ServeHTTP(w, req)
+
+	// Get game state
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("GET", "/api/v1/games/"+createResp.GameID, nil)
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var stateResp GameStateResponse
+	json.Unmarshal(w.Body.Bytes(), &stateResp)
+
+	// Verify max_turns_per_player is set (Requirements 2.4)
+	if stateResp.MaxTurnsPerPlayer != game.DefaultMaxTurnsPerPlayer {
+		t.Errorf("Expected max_turns_per_player %d, got %d", game.DefaultMaxTurnsPerPlayer, stateResp.MaxTurnsPerPlayer)
+	}
+
+	// Verify players have victory_progress (Requirements 3.1-3.5)
+	if len(stateResp.Players) != 2 {
+		t.Fatalf("Expected 2 players, got %d", len(stateResp.Players))
+	}
+
+	for _, player := range stateResp.Players {
+		// Victory progress should be >= 0 and <= 100
+		if player.VictoryProgress < 0 || player.VictoryProgress > 100 {
+			t.Errorf("Player %s victory_progress should be 0-100, got %f", player.PlayerID, player.VictoryProgress)
+		}
+	}
+
+	// Game not finished yet, so winner_id and win_reason should be empty
+	if stateResp.WinnerID != "" {
+		t.Errorf("Expected empty winner_id for ongoing game, got %s", stateResp.WinnerID)
+	}
+	if stateResp.WinReason != "" {
+		t.Errorf("Expected empty win_reason for ongoing game, got %s", stateResp.WinReason)
+	}
+}
+
 func TestJoinGame(t *testing.T) {
 	router := setupTestRouter()
 
@@ -322,6 +406,97 @@ func TestExecuteTurn(t *testing.T) {
 
 	if turnResp.DiceValue < 1 || turnResp.DiceValue > 6 {
 		t.Errorf("Expected dice value 1-6, got %d", turnResp.DiceValue)
+	}
+}
+
+// TestExecuteTurn_VictoryStatusFields 測試 ExecuteTurn 回應包含勝利狀態欄位
+// Requirements 1.1-1.5: 回應中包含勝利狀態
+func TestExecuteTurn_VictoryStatusFields(t *testing.T) {
+	router := setupTestRouter()
+
+	// Create a game
+	createReq := CreateGameRequest{MaxPlayers: 2}
+	body, _ := json.Marshal(createReq)
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/api/v1/games", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+
+	var createResp CreateGameResponse
+	json.Unmarshal(w.Body.Bytes(), &createResp)
+
+	// Join 2 players
+	players := []struct {
+		id          string
+		name        string
+		companyType company.CompanyType
+	}{
+		{"p1", "Alice", company.Startup},
+		{"p2", "Bob", company.Traditional},
+	}
+
+	for _, p := range players {
+		joinReq := JoinGameRequest{
+			PlayerID:    p.id,
+			PlayerName:  p.name,
+			CompanyType: p.companyType,
+		}
+		body, _ = json.Marshal(joinReq)
+
+		w = httptest.NewRecorder()
+		req, _ = http.NewRequest("POST", "/api/v1/games/"+createResp.GameID+"/join", bytes.NewBuffer(body))
+		req.Header.Set("Content-Type", "application/json")
+		router.ServeHTTP(w, req)
+	}
+
+	// Start the game
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/api/v1/games/"+createResp.GameID+"/start", nil)
+	router.ServeHTTP(w, req)
+
+	// Execute turn for player 1
+	turnReq := TurnRequest{
+		PlayerID:   "p1",
+		ActionType: "roll_dice",
+	}
+	body, _ = json.Marshal(turnReq)
+
+	w = httptest.NewRecorder()
+	req, _ = http.NewRequest("POST", "/api/v1/games/"+createResp.GameID+"/turn", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Expected status 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var turnResp TurnResponse
+	json.Unmarshal(w.Body.Bytes(), &turnResp)
+
+	// Verify victory status fields are present in response
+	// game_ended should be false for a new game (unless player wins immediately)
+	// victory_progress should be >= 0 and <= 100
+	if turnResp.VictoryProgress < 0 || turnResp.VictoryProgress > 100 {
+		t.Errorf("Expected victory_progress 0-100, got %f", turnResp.VictoryProgress)
+	}
+
+	// If game hasn't ended, winner_id and win_reason should be empty
+	if !turnResp.GameEnded {
+		if turnResp.WinnerID != "" {
+			t.Errorf("Expected empty winner_id when game not ended, got %s", turnResp.WinnerID)
+		}
+		if turnResp.WinReason != "" {
+			t.Errorf("Expected empty win_reason when game not ended, got %s", turnResp.WinReason)
+		}
+	} else {
+		// If game ended, verify winner_id and win_reason are set
+		if turnResp.WinnerID == "" {
+			t.Error("Expected winner_id to be set when game ended")
+		}
+		if turnResp.WinReason != "condition_met" && turnResp.WinReason != "turn_limit" {
+			t.Errorf("Expected win_reason to be 'condition_met' or 'turn_limit', got %s", turnResp.WinReason)
+		}
 	}
 }
 

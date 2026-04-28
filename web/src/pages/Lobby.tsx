@@ -55,9 +55,9 @@ function Lobby() {
         player_name: playerName,
         company_type: companyType,
       })
-      // 儲存玩家 ID 到 localStorage
-      localStorage.setItem('playerId', playerId)
-      localStorage.setItem('playerName', playerName)
+      // 儲存玩家 ID 到 sessionStorage（每個分頁獨立）
+      sessionStorage.setItem('playerId', playerId)
+      sessionStorage.setItem('playerName', playerName)
       // 導航到遊戲頁面
       navigate(`/game/${gameIdInput}`)
     } catch (err) {
@@ -127,30 +127,15 @@ function Lobby() {
         {mode === 'join' && (
           <div className="form-section">
             <h3>加入遊戲</h3>
-            {gameIdInput && (
-              <div className="game-id-display">
-                <span className="game-id-label">🎮 遊戲 ID：</span>
-                <span className="game-id-value">{gameIdInput}</span>
-                <button 
-                  className="btn-copy"
-                  onClick={() => navigator.clipboard.writeText(gameIdInput)}
-                  title="複製 ID"
-                >
-                  📋
-                </button>
-              </div>
-            )}
-            {!gameIdInput && (
-              <div className="form-group">
-                <label>遊戲 ID</label>
-                <input
-                  type="text"
-                  value={gameIdInput}
-                  onChange={(e) => setGameIdInput(e.target.value)}
-                  placeholder="輸入遊戲 ID"
-                />
-              </div>
-            )}
+            <div className="form-group">
+              <label>遊戲 ID</label>
+              <input
+                type="text"
+                value={gameIdInput}
+                onChange={(e) => setGameIdInput(e.target.value)}
+                placeholder="輸入遊戲 ID（例如 game_1）"
+              />
+            </div>
             <div className="form-group">
               <label>玩家名稱</label>
               <input

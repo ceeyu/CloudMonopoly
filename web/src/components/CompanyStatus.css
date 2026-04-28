@@ -252,6 +252,78 @@
   padding: var(--spacing-md);
 }
 
+/* 勝利進度區塊 - Requirements 3.1-3.5 */
+.victory-progress-section {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 8px;
+  border: 1px solid #f59e0b;
+}
+
+.victory-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.victory-icon {
+  font-size: 1rem;
+}
+
+.victory-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: #92400e;
+}
+
+.victory-progress-bar {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.victory-progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease, background-color 0.3s ease;
+}
+
+.victory-progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.victory-target {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.victory-target-label {
+  font-size: var(--font-size-xs);
+  color: #92400e;
+}
+
+.victory-target-value {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: #78350f;
+}
+
 /* 平板響應式設計 */
 @media (max-width: 900px) {
   .company-status {
@@ -269,6 +341,14 @@
 
   .stat-icon {
     font-size: 1rem;
+  }
+
+  .victory-progress-section {
+    padding: 0.5rem;
+  }
+
+  .victory-progress-bar {
+    height: 18px;
   }
 }
 
@@ -320,6 +400,24 @@
     font-size: 0.55rem;
     padding: 0.1rem 0.3rem;
   }
+
+  .victory-progress-section {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .victory-progress-bar {
+    height: 16px;
+  }
+
+  .victory-progress-text {
+    font-size: 0.6rem;
+  }
+
+  .victory-target-label,
+  .victory-target-value {
+    font-size: 0.65rem;
+  }
 }
 
 /* 小手機響應式設計 */
@@ -356,5 +454,30 @@
 
   .progress-text {
     font-size: 0.5rem;
+  }
+
+  .victory-progress-section {
+    padding: 0.4rem;
+  }
+
+  .victory-icon {
+    font-size: 0.9rem;
+  }
+
+  .victory-label {
+    font-size: 0.65rem;
+  }
+
+  .victory-progress-bar {
+    height: 14px;
+  }
+
+  .victory-progress-text {
+    font-size: 0.55rem;
+  }
+
+  .victory-target-label,
+  .victory-target-value {
+    font-size: 0.6rem;
   }
 }

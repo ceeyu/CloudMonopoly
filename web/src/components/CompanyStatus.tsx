@@ -1,4 +1,4 @@
-import { PlayerState, COMPANY_TYPES } from '../api/types'
+import { PlayerState, COMPANY_TYPES, VICTORY_CONDITIONS, CompanyType } from '../api/types'
 import './CompanyStatus.css'
 
 interface CompanyStatusProps {
@@ -38,6 +38,18 @@ function CompanyStatus({ player, isCurrentPlayer, isCurrentTurn }: CompanyStatus
     return '#f59e0b'
   }
 
+  // 計算勝利進度條的顏色
+  const getVictoryProgressColor = (progress: number) => {
+    if (progress >= 100) return '#10b981' // 綠色 - 已達成
+    if (progress >= 75) return '#22c55e'  // 淺綠色
+    if (progress >= 50) return '#eab308'  // 黃色
+    if (progress >= 25) return '#f59e0b'  // 橙色
+    return '#6b7280'                       // 灰色
+  }
+
+  // 取得勝利條件描述
+  const victoryCondition = company?.type ? VICTORY_CONDITIONS[company.type as CompanyType] : null
+
   return (
     <div className={`company-status ${isCurrentPlayer ? 'is-me' : ''} ${isCurrentTurn ? 'is-turn' : ''}`}>
       {/* 玩家標題 */}
@@ -58,6 +70,30 @@ function CompanyStatus({ player, isCurrentPlayer, isCurrentTurn }: CompanyStatus
             <span className="company-type-name">{companyTypeInfo?.name || '未知公司'}</span>
             {company.is_international && <span className="international-badge" title="跨國企業">🌍</span>}
           </div>
+
+          {/* 勝利進度 - Requirements 3.1-3.5 */}
+          {victoryCondition && (
+            <div className="victory-progress-section">
+              <div className="victory-header">
+                <span className="victory-icon">🏆</span>
+                <span className="victory-label">勝利進度</span>
+              </div>
+              <div className="victory-progress-bar">
+                <div 
+                  className="victory-progress-fill"
+                  style={{ 
+                    width: `${Math.min(player.victory_progress, 100)}%`,
+                    backgroundColor: getVictoryProgressColor(player.victory_progress)
+                  }}
+                />
+                <span className="victory-progress-text">{Math.round(player.victory_progress)}%</span>
+              </div>
+              <div className="victory-target">
+                <span className="victory-target-label">目標：</span>
+                <span className="victory-target-value">{victoryCondition.target}</span>
+              </div>
+            </div>
+          )}
 
           {/* 主要數據 */}
           <div className="stats-grid">

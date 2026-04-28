@@ -1,0 +1,400 @@
+/* VictoryModal 樣式 */
+
+.victory-modal-overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.victory-modal-content {
+  max-width: 600px;
+  animation: victorySlideUp 0.4s ease-out;
+}
+
+@keyframes victorySlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 勝利標題 */
+.victory-header {
+  background: linear-gradient(135deg, #ffd700 0%, #ff9900 100%);
+  border-radius: 16px 16px 0 0;
+  text-align: center;
+  padding: var(--spacing-lg);
+}
+
+.victory-header h2 {
+  color: white;
+  font-size: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  margin: 0;
+  animation: victoryPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes victoryPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.victory-body {
+  padding: var(--spacing-lg);
+}
+
+/* 贏家區塊 */
+.winner-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.winner-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  background: linear-gradient(135deg, #fff8e6 0%, #fff3d6 100%);
+  border: 2px solid #ffd700;
+  border-radius: 16px;
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.winner-icon {
+  font-size: 4rem;
+  animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.winner-info {
+  flex: 1;
+}
+
+.winner-name {
+  font-size: var(--font-size-xl);
+  color: var(--secondary-color);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.winner-company {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* 勝利原因說明 */
+.win-reason-box {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: var(--spacing-md);
+  text-align: center;
+}
+
+.win-reason-label {
+  display: inline-block;
+  background: var(--success-color);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: bold;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  margin-bottom: var(--spacing-xs);
+}
+
+.win-reason-text {
+  font-size: var(--font-size-lg);
+  color: var(--secondary-color);
+  font-weight: 600;
+  margin: var(--spacing-xs) 0 0 0;
+}
+
+/* 最終排名區塊 */
+.final-stats-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.final-stats-section h3 {
+  color: var(--secondary-color);
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.players-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.ranking-card {
+  display: grid;
+  grid-template-columns: 40px 1fr 120px auto;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition: all 0.2s ease;
+}
+
+.ranking-card.winner {
+  background: linear-gradient(135deg, #fff8e6 0%, #fff3d6 100%);
+  border-color: #ffd700;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.ranking-position {
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.ranking-player {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.ranking-icon {
+  font-size: 1.25rem;
+}
+
+.ranking-name {
+  font-weight: 500;
+  color: var(--text-color);
+  font-size: var(--font-size-sm);
+}
+
+/* 進度條 */
+.ranking-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.progress-bar-container {
+  flex: 1;
+  height: 8px;
+  background: var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color) 0%, var(--success-color) 100%);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 45px;
+  text-align: right;
+}
+
+.ranking-stats {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.ranking-stats .stat {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* 遊戲統計摘要 */
+.game-summary-section h3 {
+  color: var(--secondary-color);
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-xs);
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+}
+
+.summary-item {
+  background: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: var(--spacing-md);
+  text-align: center;
+}
+
+.summary-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.summary-value {
+  font-size: var(--font-size-xl);
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+/* Footer */
+.victory-footer {
+  justify-content: center;
+  padding: var(--spacing-lg);
+  background: var(--background-color);
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-return-lobby {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: white;
+  border: none;
+  padding: var(--spacing-md) var(--spacing-xl);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  min-width: 180px;
+}
+
+.btn-return-lobby:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 153, 0, 0.4);
+}
+
+.btn-return-lobby:active {
+  transform: translateY(0);
+}
+
+/* 平板響應式 */
+@media (max-width: 768px) {
+  .victory-modal-content {
+    max-width: 95%;
+  }
+
+  .ranking-card {
+    grid-template-columns: 35px 1fr 100px;
+    grid-template-rows: auto auto;
+  }
+
+  .ranking-stats {
+    grid-column: 2 / -1;
+    justify-content: flex-start;
+    padding-top: var(--spacing-xs);
+  }
+
+  .winner-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .winner-icon {
+    font-size: 3rem;
+  }
+}
+
+/* 手機響應式 */
+@media (max-width: 480px) {
+  .victory-modal-content {
+    max-height: 95vh;
+    border-radius: 16px 16px 0 0;
+    max-width: 100%;
+  }
+
+  .victory-header {
+    border-radius: 16px 16px 0 0;
+    padding: var(--spacing-md);
+  }
+
+  .victory-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .victory-body {
+    padding: var(--spacing-md);
+  }
+
+  .winner-card {
+    padding: var(--spacing-md);
+  }
+
+  .winner-icon {
+    font-size: 2.5rem;
+  }
+
+  .winner-name {
+    font-size: var(--font-size-lg);
+  }
+
+  .ranking-card {
+    grid-template-columns: 30px 1fr;
+    padding: var(--spacing-sm);
+  }
+
+  .ranking-progress {
+    grid-column: 1 / -1;
+    margin-top: var(--spacing-xs);
+  }
+
+  .ranking-stats {
+    grid-column: 1 / -1;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .victory-footer {
+    padding: var(--spacing-md);
+  }
+
+  .btn-return-lobby {
+    width: 100%;
+    padding: var(--spacing-md);
+  }
+}
+
+/* 橫向模式優化 */
+@media (max-height: 500px) and (orientation: landscape) {
+  .victory-modal-content {
+    max-height: 98vh;
+    border-radius: 8px;
+  }
+
+  .victory-header,
+  .victory-footer {
+    padding: var(--spacing-sm);
+  }
+
+  .victory-body {
+    padding: var(--spacing-sm);
+  }
+
+  .winner-card {
+    padding: var(--spacing-sm);
+  }
+
+  .winner-icon {
+    font-size: 2rem;
+  }
+}

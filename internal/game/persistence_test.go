@@ -95,13 +95,14 @@ func generateRandomGame(t *rapid.T) *Game {
 			BoardType:       boardType,
 			DifficultyLevel: difficulty,
 		},
-		Status:          status,
-		CurrentTurn:     currentTurn,
-		CurrentPlayerID: currentPlayerID,
-		Players:         players,
-		Board:           gameBoard,
-		CreatedAt:       createdAt,
-		UpdatedAt:       updatedAt,
+		Status:            status,
+		CurrentTurn:       currentTurn,
+		CurrentPlayerID:   currentPlayerID,
+		Players:           players,
+		Board:             gameBoard,
+		CreatedAt:         createdAt,
+		UpdatedAt:         updatedAt,
+		MaxTurnsPerPlayer: DefaultMaxTurnsPerPlayer, // 預設 30 回合
 	}
 }
 

@@ -71,12 +71,46 @@ export interface Company {
   infrastructure: string[];
 }
 
+// 勝利原因類型 - Requirements 2.4
+export type WinReason = 'condition_met' | 'turn_limit';
+
+// 勝利條件資訊 - Requirements 3.1-3.5
+export interface VictoryConditionInfo {
+  company_type: CompanyType;
+  target_description: string;
+  current_value: string;
+  target_value: string;
+  progress: number;
+}
+
+// 各公司類型的勝利條件描述 - Requirements 1.1-1.4
+export const VICTORY_CONDITIONS: Record<CompanyType, { description: string; target: string }> = {
+  startup: {
+    description: '累積資本達到目標',
+    target: '資本 ≥ 3000 萬',
+  },
+  traditional: {
+    description: '完成數位轉型',
+    target: '雲端採用率 ≥ 80%',
+  },
+  cloud_reseller: {
+    description: '擴大團隊規模',
+    target: '員工數 ≥ 150 人',
+  },
+  cloud_native: {
+    description: '達成資本與資安雙目標',
+    target: '資本 ≥ 2000 萬 且 資安等級 ≥ 5',
+  },
+};
+
 // 玩家狀態
 export interface PlayerState {
   player_id: string;
   player_name: string;
   company: Company | null;
   position: number;
+  victory_progress: number;  // 勝利進度百分比 (0-100) - Requirements 3.1-3.5
+  turns_played: number;      // 已進行回合數
 }
 
 // 遊戲配置
@@ -102,6 +136,9 @@ export interface GameStateResponse {
   players: PlayerState[];
   board_size: number;
   cells: CellData[];
+  max_turns_per_player: number;    // 每位玩家最大回合數 - Requirements 2.4
+  winner_id?: string;              // 贏家 ID (遊戲結束時設定) - Requirements 2.4
+  win_reason?: WinReason;          // 勝利原因 - Requirements 2.4
 }
 
 // 建立遊戲請求
@@ -149,6 +186,11 @@ export interface TurnResponse {
   circuit_completed: boolean;
   decision_required: boolean;
   cell_type: CellType;
+  // Victory-related fields - Requirements 1.1-1.5
+  game_ended: boolean;             // 遊戲是否結束
+  winner_id?: string;              // 贏家 ID (如果遊戲結束)
+  win_reason?: WinReason;          // 勝利原因
+  victory_progress: number;        // 當前玩家的勝利進度
 }
 
 // 決策請求

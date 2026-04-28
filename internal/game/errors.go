@@ -8,6 +8,7 @@ var (
 	ErrGameAlreadyStarted  = errors.New("game already started")
 	ErrGameNotStarted      = errors.New("game not started")
 	ErrGameNotFinished     = errors.New("game not finished")
+	ErrGameFinished        = errors.New("game already finished")
 	ErrNotYourTurn         = errors.New("not your turn")
 	ErrInvalidAction       = errors.New("invalid action")
 	ErrPlayerNotFound      = errors.New("player not found")
@@ -18,4 +19,5 @@ var (
 	ErrCorruptedState      = errors.New("corrupted game state")
 	ErrSaveFailed          = errors.New("failed to save game")
 	ErrLoadFailed          = errors.New("failed to load game")
+	ErrTurnLimitReached    = errors.New("turn limit reached")
 )

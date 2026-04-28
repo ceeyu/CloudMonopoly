@@ -30,17 +30,23 @@ var DefaultGameConfig = GameConfig{
 	DifficultyLevel: "normal",
 }
 
+// DefaultMaxTurnsPerPlayer 預設每位玩家最大回合數
+const DefaultMaxTurnsPerPlayer = 30
+
 // Game 遊戲實體
 type Game struct {
-	ID              string
-	Config          GameConfig
-	Status          GameStatus
-	CurrentTurn     int
-	CurrentPlayerID string
-	Players         []*PlayerState
-	Board           *board.Board
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID                string
+	Config            GameConfig
+	Status            GameStatus
+	CurrentTurn       int
+	CurrentPlayerID   string
+	Players           []*PlayerState
+	Board             *board.Board
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+	MaxTurnsPerPlayer int    // 每位玩家最大回合數 (預設 30) - Requirements 2.1
+	WinnerID          string // 贏家 ID (遊戲結束時設定) - Requirements 2.4
+	WinReason         string // 勝利原因: "condition_met" 或 "turn_limit" - Requirements 2.4
 }
 
 // PlayerState 玩家狀態
@@ -52,6 +58,7 @@ type PlayerState struct {
 	TurnsPlayed            int
 	DecisionHistory        []DecisionRecord
 	DecisionOutcomeHistory []DecisionOutcomeRecord // 詳細決策結果歷史
+	VictoryProgress        float64                 // 勝利進度百分比 (0-100) - Requirements 2.4, 3.1-3.5
 }
 
 // DecisionRecord 決策記錄
